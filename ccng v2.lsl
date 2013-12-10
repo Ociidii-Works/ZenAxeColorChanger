@@ -22,7 +22,7 @@
 - Make it faster? D:
 */
 
-float glowAmount = 0.13; // How much glow
+float glowAmount = 0.08; // How much glow
 integer colorRoot = 1; // Needed for checking if we want to recolor the root prim
 list foundPrims = []; // Internal use, don't touch.
 vector color;       // Internal use, don't touch.
@@ -156,6 +156,19 @@ colorit(string message)
     }
 }
 
+listPrims()
+{
+    if(llGetListLength(foundPrims) < 1)
+    {
+        for(fp = 1; fp <= llGetNumberOfPrims(); fp ++)
+        {
+            if(llToLower(llGetLinkName(fp)) == "colorprim")
+            {
+                foundPrims += fp;
+            }
+        }
+    }
+}
 doColor(vector dcolor)
 {
     //  llOwnerSay((string)dcolor);
@@ -170,25 +183,20 @@ doColor(vector dcolor)
     }
     //  we do this to color the root prim if it contains
     // the name in the description
-    if (colorRoot == 1)
+    if( llToLower(llGetObjectDesc()) == "colorprim")
+    {
         llSetColor(dcolor, ALL_SIDES);
+    }
 }
 default
 {
     state_entry()
     {
-        if(llGetListLength(foundPrims) < 1)
-        {
-            for(fp = 1; fp <= llGetNumberOfPrims(); fp ++)
-            {
-                if(llToLower(llGetLinkName(fp)) == "colorprim")
-                    foundPrims += fp;
-            }
-        }
-    listLen = llGetListLength(foundPrims);
-    llListen(9,"",llGetOwner(),"");
-//    llSetMemoryLimit(llGetUsedMemory() + 4096);
-    llSetTimerEvent(0.5);
+        listPrims();
+        listLen = llGetListLength(foundPrims);
+        llListen(9,"",llGetOwner(),"");
+//      llSetMemoryLimit(llGetUsedMemory() + 4096);
+        llSetTimerEvent(0.5);
     }
     // We re-use the listener system from what we are replacing,
     listen(integer channel, string name, key is, string message)
@@ -235,28 +243,13 @@ state typing
         while((llGetAgentInfo(llGetOwner())&AGENT_TYPING))
         {
             vector ncolor = <llFrand(1.0),llFrand(1.0),llFrand(1.0)>;
-            if (colorRoot == 1)
-                llSetColor(ncolor,ALL_SIDES);
-            integer i;
-            for(i = 0; i <listLen; i ++)
-            {
-                // Set color
-                doColor(ncolor);
-//                llSleep(0.5);
-            }
-                }
-         if(isTyping)
-         {
+            doColor(ncolor);
+        }
+        if(isTyping)
+        {
             isTyping = 0;
-            if (colorRoot == 1)
-                llSetColor(ocolor,ALL_SIDES);
-            integer i;
-            for(i = 0; i <listLen; i ++)
-            {
-               // Set color
-               doColor(ocolor);
-                state default;
-            } // end for
+            doColor(ocolor);
+            state default;
         } // end
     }
 }
