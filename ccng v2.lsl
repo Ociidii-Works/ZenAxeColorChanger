@@ -223,22 +223,12 @@ state typing
 {
     state_entry()
     {
-        llSetTimerEvent(0.2);
-        if(listLen > 1)
-        {
-            ocolor = llList2Vector(llGetLinkPrimitiveParams(
-                    llList2Integer(foundPrims,2),[PRIM_COLOR,ALL_SIDES]),0);
-        }
-        else
-        {
             ocolor = llList2Vector(llGetLinkPrimitiveParams(
                     llList2Integer(foundPrims,0),[PRIM_COLOR,ALL_SIDES]),0);
-        }
+        llSetTimerEvent(0.2);
     }
     timer()
     {
-//        ocolor = llList2Vector(llGetLinkPrimitiveParams(
- //                   llList2Integer(foundPrims,1),[PRIM_COLOR,1]),0);
         isTyping = 1;
         while((llGetAgentInfo(llGetOwner())&AGENT_TYPING))
         {
@@ -248,6 +238,7 @@ state typing
         if(isTyping)
         {
             isTyping = 0;
+            llSleep(0.01);
             doColor(ocolor);
             state default;
         } // end
