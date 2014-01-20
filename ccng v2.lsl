@@ -202,6 +202,7 @@ listPrims()
 }
 doColor(vector dcolor)
 {
+     DebugMessage((string)dcolor);
     integer i;
     for(i = 0; i <listLen; i ++)
     {
