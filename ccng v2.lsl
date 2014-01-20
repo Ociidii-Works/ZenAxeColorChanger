@@ -36,7 +36,7 @@ vector color;                   // Internal use, don't touch.
 vector ocolor;                  // original color of the prim
 integer fp;                     // counter
 integer isTyping;               // Typing indicator bit
-integer x;                      //counter
+integer x;                      // counter
 integer listLen;                // Length of the prim list. used for checks
 
 integer cCheckID;               // color change bug fix for single prim
