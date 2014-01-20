@@ -17,22 +17,53 @@
 //         For better readability,
 // extend the size of the editor until this comment fits fully on one line.
 
+
+
 /*  TODO
--Fix weird child prim lag when restoring ocolor.
 - Make it faster? D:
 */
 
-float glowAmount = 0.08; // How much glow
-integer colorRoot = 1; // Needed for checking if we want to recolor the root prim
-list foundPrims = []; // Internal use, don't touch.
-vector color;       // Internal use, don't touch.
-vector ocolor;
-integer fp;         // Internal use, don't touch.
-integer isTyping;   // Typing indicator bit
-integer x;
-integer listLen;
+// user preferences //
+float glowAmount = 0.08;        // How much glow
+integer colorRoot = 1;          // Needed for checking if we want to recolor the root prim
+list foundPrims = [];           // Internal use, don't touch.
 
-integer cCheckID; // color change bug fix for single prim
+integer MessagesLevel = 0; /// Verbosity.
+
+///////////////////////////////////////////////////////////////////
+// internal variables, LEAVE THEM ALONE!! D:
+vector color;                   // Internal use, don't touch.
+vector ocolor;                  // original color of the prim
+integer fp;                     // counter
+integer isTyping;               // Typing indicator bit
+integer x;                      //counter
+integer listLen;                // Length of the prim list. used for checks
+
+integer cCheckID;               // color change bug fix for single prim
+///////////////////////////////////////////////////////////////////
+
+
+////////////////////// Custom Functions /////////////////////////
+
+
+////// Debug system /////////
+ErrorMessage(string message)
+{
+    if(MessagesLevel >= 1)
+        llOwnerSay("E: " + message);
+}
+InfoMessage(string message)
+{
+    if(MessagesLevel >= 2)
+        llOwnerSay("I: " + message);
+}
+DebugMessage(string message)
+{
+    if(MessagesLevel >= 3)
+        llOwnerSay("D: " + message);
+}
+
+
 string GetLinkDesc(integer link)
 {
     return (string)llGetObjectDetails(llGetLinkKey(link), (list)OBJECT_DESC);
@@ -171,7 +202,6 @@ listPrims()
 }
 doColor(vector dcolor)
 {
-    //  llOwnerSay((string)dcolor);
     integer i;
     for(i = 0; i <listLen; i ++)
     {
@@ -181,6 +211,7 @@ doColor(vector dcolor)
             PRIM_GLOW,ALL_SIDES,glowAmount
             ]);
     }
+
     //  we do this to color the root prim if it contains
     // the name in the description
     if( llToLower(llGetObjectDesc()) == "colorprim")
@@ -188,6 +219,9 @@ doColor(vector dcolor)
         llSetColor(dcolor, ALL_SIDES);
     }
 }
+
+
+/////////////////////////// Script Starts Here ///////////////////////////
 default
 {
     state_entry()
@@ -214,7 +248,7 @@ default
         else
         {
         isTyping = 0;
-//        llSay(DEBUG_CHANNEL,(string)ocolor);
+        DebugMessage((string)ocolor);
         llSetTimerEvent(0.5);
         }
     }
