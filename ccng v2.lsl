@@ -38,7 +38,6 @@ integer fp;                     // counter
 integer isTyping;               // Typing indicator bit
 integer x;                      // counter
 integer listLen;                // Length of the prim list. used for checks
-
 integer cCheckID;               // color change bug fix for single prim
 ///////////////////////////////////////////////////////////////////
 
@@ -191,7 +190,7 @@ listPrims()
 {
     if(llGetListLength(foundPrims) < 1)
     {
-        for(fp = 1; fp <= llGetNumberOfPrims(); fp ++)
+        for(fp = 0; fp <= llGetNumberOfPrims(); fp ++)
         {
             if(llToLower(llGetLinkName(fp)) == "colorprim")
             {
@@ -202,25 +201,26 @@ listPrims()
 }
 doColor(vector dcolor)
 {
-     DebugMessage((string)dcolor);
-    integer i;
-    for(i = 0; i <listLen; i ++)
+    DebugMessage("doColor "+ (string)dcolor);
+    if(colorRoot == 1)
     {
-        // Set color
-        llSetLinkPrimitiveParamsFast(llList2Integer(foundPrims, i),
-            [PRIM_COLOR,ALL_SIDES,dcolor,1.0,
-            PRIM_GLOW,ALL_SIDES,glowAmount
-            ]);
+        InfoMessage("Setting Root Color to: "+ (string)dcolor);
+        llSetColor(dcolor,ALL_SIDES);
     }
-
-    //  we do this to color the root prim if it contains
-    // the name in the description
-    if( llToLower(llGetObjectDesc()) == "colorprim")
+    if(listLen > 0)
     {
-        llSetColor(dcolor, ALL_SIDES);
+        integer i;
+        for(i = 0; i <listLen;)
+        {
+            // Set color
+            llSetLinkPrimitiveParamsFast(llList2Integer(foundPrims, i),
+                [PRIM_COLOR,ALL_SIDES,dcolor,1.0,
+                PRIM_GLOW,ALL_SIDES,glowAmount
+                ]);
+             i++;
+        }
     }
 }
-
 
 /////////////////////////// Script Starts Here ///////////////////////////
 default
@@ -229,6 +229,7 @@ default
     {
         listPrims();
         listLen = llGetListLength(foundPrims);
+        InfoMessage("List Lenght: "+ (string)listLen);
         llListen(9,"",llGetOwner(),"");
 //      llSetMemoryLimit(llGetUsedMemory() + 4096);
         llSetTimerEvent(0.5);
@@ -237,6 +238,7 @@ default
     listen(integer channel, string name, key is, string message)
     {
         colorit(message);
+        InfoMessage(message);
     }
     timer()
     {
@@ -258,8 +260,8 @@ state typing
 {
     state_entry()
     {
-            ocolor = llList2Vector(llGetLinkPrimitiveParams(
-                    llList2Integer(foundPrims,0),[PRIM_COLOR,ALL_SIDES]),0);
+        ocolor = llList2Vector(llGetLinkPrimitiveParams(
+        llList2Integer(foundPrims,0),[PRIM_COLOR,ALL_SIDES]),0);
         llSetTimerEvent(0.2);
     }
     timer()
