@@ -1,27 +1,23 @@
-///////////////////////////////////////////////////////////////////////////
-//  CCNG - Color Changer Next Gen by Miguael Liamano
-///////////////////////////////////////////////////////////////////////////
-//    This program is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-///////////////////////////////////////////////////////////////////////////
-//         For better readability,
-// extend the size of the editor until this comment fits fully on one line.
+/*           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+                   Version 2, December 2004
 
+Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
 
+Everyone is permitted to copy and distribute verbatim or modified
+copies of this license document, and changing it is allowed as long
+as the name is changed.
 
-/*  TODO
-- Make it faster? D:
+           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+  TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+ 0. You just DO WHAT THE FUCK YOU WANT TO.
+
 */
+//         For better readability, extend the size of the editor until this comment fits fully on one line.
+
+//////// How to use ///////////
+
+// See https://github.com/Ociidii-Works/ZenAxeColorChanger/blob/master/README.md
 
 // user preferences //
 float glowAmount = 0.08;        // How much glow
@@ -177,7 +173,7 @@ colorit(string message)
             doColor(<llFrand(1.0),llFrand(1.0),llFrand(1.0)>);
     else
     {
-        doColor(llGetColor(0));
+        llOwnerSay("Wrong color, or script is outdated! \n"+ "Get the latest version and usage information at https://github.com/Ociidii-Works/ZenAxeColorChanger !");
     }
     if(llGetFreeMemory() < 1000)
     {
@@ -269,6 +265,7 @@ state typing
         isTyping = 1;
         while((llGetAgentInfo(llGetOwner())&AGENT_TYPING))
         {
+            // we don't use the colorit() function here because it's too expansive
             vector ncolor = <llFrand(1.0),llFrand(1.0),llFrand(1.0)>;
             doColor(ncolor);
         }
