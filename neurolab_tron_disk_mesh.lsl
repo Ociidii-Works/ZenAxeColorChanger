@@ -268,7 +268,7 @@ state typing
     state_entry()
     {
         ocolor = llList2Vector(llGetLinkPrimitiveParams(
-        llList2Integer(foundPrims,0),[PRIM_COLOR,ALL_SIDES]),0);
+        llList2Integer(foundPrims,2),[PRIM_COLOR,2]),0);
         llSetTimerEvent(0.2);
     }
     timer()
