@@ -22,14 +22,14 @@ as the name is changed.
 // user preferences //
 float glowAmount = 0.08;        // How much glow
 integer colorRoot = 1;          // Needed for checking if we want to recolor the root prim
-list foundPrims = [];           // Internal use, don't touch.
+list primsToRecolor = [];       // Internal use, don't touch.
 
 integer MessagesLevel = 0; /// Verbosity.
 
 ///////////////////////////////////////////////////////////////////
 // internal variables, LEAVE THEM ALONE!! D:
 key owner;                      // Owner, set in state_entry
-integer listLen;                // Length of the prim list. used for checks
+integer primListLen;            // Length of the prim list. used for checks
 ///////////////////////////////////////////////////////////////////
 
 
@@ -53,15 +53,9 @@ DebugMessage(string message)
         llOwnerSay("D: " + message);
 }
 
-
-string GetLinkDesc(integer link)
-{
-    return (string)llGetObjectDetails(llGetLinkKey(link), [OBJECT_DESC]);
-}
-
 vector random_color() { return <llFrand(1.0),llFrand(1.0),llFrand(1.0)>; }
 
-colorit(string message)
+translateColor(string message)
 {
     message = llToLower(message);
     vector color;
@@ -138,7 +132,7 @@ colorit(string message)
         llOwnerSay("Wrong color, or script is outdated! \n"+ "Get the latest version and usage information at https://github.com/Ociidii-Works/ZenAxeColorChanger !");
         return;
     }
-    doColor(color);
+    setColor(color);
 
     if(llGetFreeMemory() < 1000)
     {
@@ -150,43 +144,43 @@ colorit(string message)
 listPrims()
 {
     // Liru Note: Commented out code in this function has been optimized out, as this function is now called to refresh prim count
-    listLen = 0; //llGetListLength(foundPrims);
-    //if (listLen < 1)
+    primListLen = 0; //llGetListLength(primsToRecolor);
+    //if (primListLen < 1)
     {
         integer fp = 0;                     // counter
         for(; fp <= llGetNumberOfPrims(); ++fp)
         {
             if(llToLower(llGetLinkName(fp)) == "colorprim") // Liru Note: Optimize out the llToLower call by naming in lowercase
             {
-                foundPrims += fp;
-                ++listLen;
+                primsToRecolor += fp;
+                ++primListLen;
             }
         }
-        //listLen = llGetListLength(foundPrims);
+        //primListLen = llGetListLength(primsToRecolor);
     }
-    InfoMessage("List Length: "+ (string)listLen);
+    InfoMessage("List Length: "+ (string)primListLen);
 }
-doColor(vector dcolor)
+setColor(vector color)
 {
-    string stringdcolor = (string)dcolor;
-    DebugMessage("doColor "+ stringdcolor);
+    string stringcolor = (string)color;
+    DebugMessage("setColor received "+ stringcolor);
     if(colorRoot == 1)
     {
-        InfoMessage("Setting Root Color to: "+ stringdcolor);
-        llSetColor(dcolor,ALL_SIDES);
+        InfoMessage("Setting Root Color to: "+ stringcolor);
+        llSetColor(color, ALL_SIDES);
         /* Liru Note: If we want the glow on the root, we could:
-        llSetLinkPrimitiveParamsFast(LINK_ROOT, [PRIM_COLOR,ALL_SIDES,dcolor,1.0, PRIM_GLOW,ALL_SIDES,glowAmount]);
+        llSetLinkPrimitiveParamsFast(LINK_ROOT, [PRIM_COLOR,ALL_SIDES,color,1.0, PRIM_GLOW,ALL_SIDES,glowAmount]);
         */
     }
     integer i = 0;
-    for(; i < listLen; ++i)
+    for(; i < primListLen; ++i)
     {
         // Set color
         /* Liru Note: if glowAmount was 0, we could just:
-            llSetLinkColor(llList2Integer(foundPrims, i), dcolor, ALL_SIDES);
+            llSetLinkColor(llList2Integer(primsToRecolor, i), color, ALL_SIDES);
         */
-        llSetLinkPrimitiveParamsFast(llList2Integer(foundPrims, i),
-            [PRIM_COLOR,ALL_SIDES,dcolor,1.0,
+        llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i),
+            [PRIM_COLOR,ALL_SIDES,color,1.0,
             PRIM_GLOW,ALL_SIDES,glowAmount
             ]);
     }
@@ -206,7 +200,7 @@ default
     // We re-use the listener system from what we are replacing,
     listen(integer channel, string name, key is, string message)
     {
-        colorit(message);
+        translateColor(message);
         InfoMessage(message);
     }
 
@@ -216,19 +210,19 @@ default
     {
         if(llGetAgentInfo(owner) & AGENT_TYPING)
         {
-            vector ocolor = llList2Vector(llGetLinkPrimitiveParams(llList2Integer(foundPrims,0),[PRIM_COLOR,2]),0);
+            vector originalColor = llList2Vector(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor,0),[PRIM_COLOR,2]),0);
             llSetTimerEvent(0.2);
             do
             {
-                // we don't use the colorit() function here because it's too expansive
-                doColor(random_color());
+                // we don't use the translateColor() function here because it's too expansive
+                setColor(random_color());
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
             } while(llGetAgentInfo(owner) & AGENT_TYPING)
-            doColor(ocolor);
+            setColor(originalColor);
         }
         else
         {
-            //DebugMessage((string)ocolor); // Liru Note: We no longer hold onto original color, if it's really so important, get it here...
+            //DebugMessage((string)originalColor); // Liru Note: We no longer hold onto original color, if it's really so important, get it here...
             llSetTimerEvent(0.5);
         }
     }
