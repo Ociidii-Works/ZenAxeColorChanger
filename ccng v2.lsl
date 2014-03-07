@@ -221,7 +221,7 @@ default
             list originalColors;
             integer i = 0;
             for (; i < primListLen; ++i)
-                originalColors += llList2Vector(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i),[PRIM_COLOR,2]),0);
+                originalColors += llList2Vector(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i),[PRIM_COLOR,0]),0);
             llSetTimerEvent(0.2);
             do
             {
