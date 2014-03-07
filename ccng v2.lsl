@@ -28,13 +28,8 @@ integer MessagesLevel = 0; /// Verbosity.
 
 ///////////////////////////////////////////////////////////////////
 // internal variables, LEAVE THEM ALONE!! D:
-vector color;                   // Internal use, don't touch.
-vector ocolor;                  // original color of the prim
-integer fp;                     // counter
-integer isTyping;               // Typing indicator bit
-integer x;                      // counter
+key owner;                      // Owner, set in state_entry
 integer listLen;                // Length of the prim list. used for checks
-integer cCheckID;               // color change bug fix for single prim
 ///////////////////////////////////////////////////////////////////
 
 
@@ -61,9 +56,10 @@ DebugMessage(string message)
 
 string GetLinkDesc(integer link)
 {
-    return (string)llGetObjectDetails(llGetLinkKey(link), (list)OBJECT_DESC);
+    return (string)llGetObjectDetails(llGetLinkKey(link), [OBJECT_DESC]);
 }
 
+// Liru Note: This list is only used by colorit(), it can be optimized out by hardcoding the colors inside there.
 list colorList = [
     <1.00000, 0.00000, 0.00000>,
     <0.31373, 0.00000, 0.00000>,
@@ -100,77 +96,80 @@ list colorList = [
     <0.7725490196078431,0.3568627450980392,0.1725490196078431> // redhead
     ];
 
+vector random_color() { return <llFrand(1.0),llFrand(1.0),llFrand(1.0)>; }
+
 colorit(string message)
 {
-    if(llToLower(message) == "glow red")
+    message = llToLower(message);
+    if(message == "glow red")
         doColor(llList2Vector(colorList,0));
-    else if(llToLower(message) == "glow dkred")
+    else if(message == "glow dkred")
         doColor(llList2Vector(colorList,1));
-    else if(llToLower(message) == "glow orange")
+    else if(message == "glow orange")
         doColor(llList2Vector(colorList,2));
-    else if(llToLower(message) == "glow ltorange")
+    else if(message == "glow ltorange")
         doColor(llList2Vector(colorList,3));
-    else if(llToLower(message) == "glow dkorange")
+    else if(message == "glow dkorange")
         doColor(llList2Vector(colorList,4));
-    else if(llToLower(message) == "glow pink")
+    else if(message == "glow pink")
         doColor(llList2Vector(colorList,5));
-    else if(llToLower(message) == "glow blue")
+    else if(message == "glow blue")
         doColor(llList2Vector(colorList,6));
-    else if(llToLower(message) == "glow ltblue")
+    else if(message == "glow ltblue")
         doColor(llList2Vector(colorList,7));
-    else if(llToLower(message) == "glow dkblue")
+    else if(message == "glow dkblue")
         doColor(llList2Vector(colorList,8));
-    else if(llToLower(message) == "glow yellow")
+    else if(message == "glow yellow")
         doColor(llList2Vector(colorList,9));
-    else if(llToLower(message) == "glow ltyellow")
+    else if(message == "glow ltyellow")
         doColor(llList2Vector(colorList,10));
-    else if(llToLower(message) == "glow dkyellow")
+    else if(message == "glow dkyellow")
         doColor(llList2Vector(colorList,11));
-    else if(llToLower(message) == "glow wjite")
+    else if(message == "glow wjite")
         doColor(llList2Vector(colorList,12));
-    else if(llToLower(message) == "glow purple")
+    else if(message == "glow purple")
         doColor(llList2Vector(colorList,13));
-    else if(llToLower(message) == "glow ltpurple")
+    else if(message == "glow ltpurple")
         doColor(llList2Vector(colorList,14));
-    else if(llToLower(message) == "glow dkpurple")
+    else if(message == "glow dkpurple")
         doColor(llList2Vector(colorList,15));
-    else if(llToLower(message) == "glow green")
+    else if(message == "glow green")
         doColor(llList2Vector(colorList,16));
-    else if(llToLower(message) == "glow ltgreen")
+    else if(message == "glow ltgreen")
         doColor(llList2Vector(colorList,17));
-    else if(llToLower(message) == "glow dkgreen")
+    else if(message == "glow dkgreen")
         doColor(llList2Vector(colorList,18));
-    else if(llToLower(message) == "glow black")
+    else if(message == "glow black")
         doColor(llList2Vector(colorList,19));
-    else if(llToLower(message) == "glow ltgray")
+    else if(message == "glow ltgray")
         doColor(llList2Vector(colorList,20));
-    else if(llToLower(message) == "glow gray")
+    else if(message == "glow gray")
         doColor(llList2Vector(colorList,21));
-    else if(llToLower(message) == "glow dkgray")
+    else if(message == "glow dkgray")
         doColor(llList2Vector(colorList,22));
-    else if(llToLower(message) == "glow reactor")
+    else if(message == "glow reactor")
         doColor(llList2Vector(colorList,23));
-    else if(llToLower(message) == "glow tron")
+    else if(message == "glow tron")
         doColor(llList2Vector(colorList,24));
-    else if(llToLower(message) == "glow corrupt")
+    else if(message == "glow corrupt")
         doColor(llList2Vector(colorList,25));
-    else if(llToLower(message) == "glow viral")
+    else if(message == "glow viral")
         doColor(llList2Vector(colorList,26));
-    else if (llToLower(message) == "glow violet")
+    else if (message == "glow violet")
         doColor(llList2Vector(colorList,27));
-    else if (llToLower(message) == "glow singularity")
+    else if (message == "glow singularity")
         doColor(llList2Vector(colorList,28));
-    else if (llToLower(message) == "glow smoothblue")
+    else if (message == "glow smoothblue")
         doColor(llList2Vector(colorList,29));
-    else if (llToLower(message) == "glow arc")
+    else if (message == "glow arc")
         doColor(llList2Vector(colorList,30));
-    else if (llToLower(message) == "glow hotpink")
+    else if (message == "glow hotpink")
         doColor(llList2Vector(colorList,31));
-    else if (llToLower(message) == "glow redhead")
+    else if (message == "glow redhead")
         doColor(llList2Vector(colorList,32));
     // end of list
-    else if(llToLower(message) == "glow random")
-            doColor(<llFrand(1.0),llFrand(1.0),llFrand(1.0)>);
+    else if (message == "glow random")
+            doColor(random_color());
     else
     {
         llOwnerSay("Wrong color, or script is outdated! \n"+ "Get the latest version and usage information at https://github.com/Ociidii-Works/ZenAxeColorChanger !");
@@ -184,37 +183,46 @@ colorit(string message)
 
 listPrims()
 {
-    if(llGetListLength(foundPrims) < 1)
+    // Liru Note: Commented out code in this function has been optimized out, as this function is now called to refresh prim count
+    listLen = 0; //llGetListLength(foundPrims);
+    //if (listLen < 1)
     {
-        for(fp = 0; fp <= llGetNumberOfPrims(); fp ++)
+        integer fp = 0;                     // counter
+        for(; fp <= llGetNumberOfPrims(); ++fp)
         {
-            if(llToLower(llGetLinkName(fp)) == "colorprim")
+            if(llToLower(llGetLinkName(fp)) == "colorprim") // Liru Note: Optimize out the llToLower call by naming in lowercase
             {
                 foundPrims += fp;
+                ++listLen;
             }
         }
+        //listLen = llGetListLength(foundPrims);
     }
+    InfoMessage("List Length: "+ (string)listLen);
 }
 doColor(vector dcolor)
 {
-    DebugMessage("doColor "+ (string)dcolor);
+    string stringdcolor = (string)dcolor;
+    DebugMessage("doColor "+ stringdcolor);
     if(colorRoot == 1)
     {
-        InfoMessage("Setting Root Color to: "+ (string)dcolor);
+        InfoMessage("Setting Root Color to: "+ stringdcolor);
         llSetColor(dcolor,ALL_SIDES);
+        /* Liru Note: If we want the glow on the root, we could:
+        llSetLinkPrimitiveParamsFast(LINK_ROOT, [PRIM_COLOR,ALL_SIDES,dcolor,1.0, PRIM_GLOW,ALL_SIDES,glowAmount]);
+        */
     }
-    if(listLen > 0)
+    integer i = 0;
+    for(; i < listLen; ++i)
     {
-        integer i;
-        for(i = 0; i <listLen;)
-        {
-            // Set color
-            llSetLinkPrimitiveParamsFast(llList2Integer(foundPrims, i),
-                [PRIM_COLOR,ALL_SIDES,dcolor,1.0,
-                PRIM_GLOW,ALL_SIDES,glowAmount
-                ]);
-             i++;
-        }
+        // Set color
+        /* Liru Note: if glowAmount was 0, we could just:
+            llSetLinkColor(llList2Integer(foundPrims, i), dcolor, ALL_SIDES);
+        */
+        llSetLinkPrimitiveParamsFast(llList2Integer(foundPrims, i),
+            [PRIM_COLOR,ALL_SIDES,dcolor,1.0,
+            PRIM_GLOW,ALL_SIDES,glowAmount
+            ]);
     }
 }
 
@@ -223,10 +231,9 @@ default
 {
     state_entry()
     {
+        owner = llGetOwner();
         listPrims();
-        listLen = llGetListLength(foundPrims);
-        InfoMessage("List Lenght: "+ (string)listLen);
-        llListen(9,"",llGetOwner(),"");
+        llListen(9,"",owner,"");
 //      llSetMemoryLimit(llGetUsedMemory() + 4096);
         llSetTimerEvent(0.5);
     }
@@ -236,45 +243,27 @@ default
         colorit(message);
         InfoMessage(message);
     }
+
+    changed(integer change) { if (change & CHANGED_LINK) listPrims(); }
+
     timer()
     {
-        llSetTimerEvent(0);
-        if((llGetAgentInfo(llGetOwner())&AGENT_TYPING))
+        if(llGetAgentInfo(owner) & AGENT_TYPING)
         {
-            isTyping = 1;
-            state typing;
+            vector ocolor = llList2Vector(llGetLinkPrimitiveParams(llList2Integer(foundPrims,0),[PRIM_COLOR,2]),0);
+            llSetTimerEvent(0.2);
+            do
+            {
+                // we don't use the colorit() function here because it's too expansive
+                doColor(random_color());
+                llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
+            } while(llGetAgentInfo(owner) & AGENT_TYPING)
+            doColor(ocolor);
         }
         else
         {
-        isTyping = 0;
-        DebugMessage((string)ocolor);
-        llSetTimerEvent(0.5);
+            //DebugMessage((string)ocolor); // Liru Note: We no longer hold onto original color, if it's really so important, get it here...
+            llSetTimerEvent(0.5);
         }
-    }
-}
-state typing
-{
-    state_entry()
-    {
-        ocolor = llList2Vector(llGetLinkPrimitiveParams(
-        llList2Integer(foundPrims,0),[PRIM_COLOR,2]),0);
-        llSetTimerEvent(0.2);
-    }
-    timer()
-    {
-        isTyping = 1;
-        while((llGetAgentInfo(llGetOwner())&AGENT_TYPING))
-        {
-            // we don't use the colorit() function here because it's too expansive
-            vector ncolor = <llFrand(1.0),llFrand(1.0),llFrand(1.0)>;
-            doColor(ncolor);
-        }
-        if(isTyping)
-        {
-            isTyping = 0;
-            llSleep(0.01);
-            doColor(ocolor);
-            state default;
-        } // end
     }
 }
