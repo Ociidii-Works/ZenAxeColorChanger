@@ -158,6 +158,9 @@ listPrims()
         }
         //primListLen = llGetListLength(primsToRecolor);
     }
+    if (colorRoot == 1)
+        if (llListFindList(primsToRecolor, [LINK_ROOT]) == -1)
+            primsToRecolor += LINK_ROOT;
     InfoMessage("List Length: "+ (string)primListLen);
 }
 setColor(vector color)
@@ -165,13 +168,7 @@ setColor(vector color)
     string stringcolor = (string)color;
     DebugMessage("setColor received "+ stringcolor);
     if(colorRoot == 1)
-    {
         InfoMessage("Setting Root Color to: "+ stringcolor);
-        llSetColor(color, ALL_SIDES);
-        /* Liru Note: If we want the glow on the root, we could:
-        llSetLinkPrimitiveParamsFast(LINK_ROOT, [PRIM_COLOR,ALL_SIDES,color,1.0, PRIM_GLOW,ALL_SIDES,glowAmount]);
-        */
-    }
     integer i = 0;
     for(; i < primListLen; ++i)
     {
@@ -204,21 +201,32 @@ default
         InfoMessage(message);
     }
 
-    changed(integer change) { if (change & CHANGED_LINK) listPrims(); }
+    changed(integer change)
+    {
+        if (change & CHANGED_LINK)
+        {
+            primsToRecolor = [];
+            listPrims();
+        }
+    }
 
     timer()
     {
         if(llGetAgentInfo(owner) & AGENT_TYPING)
         {
-            vector originalColor = llList2Vector(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor,0),[PRIM_COLOR,2]),0);
+            list originalColors[];
+            integer i = 0;
+            for (; i < primsListLen; ++i)
+                originalColors += llList2Vector(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i),[PRIM_COLOR,2]),0);
             llSetTimerEvent(0.2);
             do
             {
                 // we don't use the translateColor() function here because it's too expansive
                 setColor(random_color());
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
-            } while(llGetAgentInfo(owner) & AGENT_TYPING)
-            setColor(originalColor);
+            } while(llGetAgentInfo(owner) & AGENT_TYPING);
+            for (i = 0; i < primsListLen; ++i)
+                llSetLinkColor(llList2Integer(primsToRecolor, i), llList2Vector(originalColors, i), ALL_SIDES);
         }
         else
         {
