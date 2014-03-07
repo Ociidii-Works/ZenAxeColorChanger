@@ -147,10 +147,11 @@ listPrims()
     primListLen = 0; //llGetListLength(primsToRecolor);
     //if (primListLen < 1)
     {
+        list recolorNames = ["colorprim"];  // Name all recolorable prims here
         integer fp = 0;                     // counter
         for(; fp <= llGetNumberOfPrims(); ++fp)
         {
-            if(llToLower(llGetLinkName(fp)) == "colorprim") // Liru Note: Optimize out the llToLower call by naming in lowercase
+            if (llListFindList(recolorNames, [llToLower(llGetLinkName(fp))]) != -1) // Liru Note: Optimize out the llToLower call by naming prims in lowercase
             {
                 primsToRecolor += fp;
                 ++primListLen;
@@ -159,7 +160,7 @@ listPrims()
         //primListLen = llGetListLength(primsToRecolor);
     }
     if (colorRoot == 1)
-        if (llListFindList(primsToRecolor, [LINK_ROOT]) == -1)
+        if (llListFindList(primsToRecolor, [LINK_ROOT]) == -1) // Not in the list, add it
             primsToRecolor += LINK_ROOT;
     InfoMessage("List Length: "+ (string)primListLen);
 }
