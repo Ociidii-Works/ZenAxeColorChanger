@@ -229,7 +229,7 @@ default
                 setColor(random_color());
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
             } while(llGetAgentInfo(owner) & AGENT_TYPING);
-            for (i = 0; i < primsListLen; ++i)
+            for (i = 0; i < primListLen; ++i)
                 llSetLinkColor(llList2Integer(primsToRecolor, i), llList2Vector(originalColors, i), ALL_SIDES);
         }
         else
