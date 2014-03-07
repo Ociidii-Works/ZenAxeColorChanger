@@ -221,7 +221,7 @@ default
             list originalColors;
             integer i = 0;
             for (; i < primListLen; ++i)
-                originalColors += llList2Vector(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i),[PRIM_COLOR,0]),0);
+                originalColors += llDumpList2String(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i),[PRIM_COLOR,ALL_SIDES]), ";");
             llSetTimerEvent(0.2);
             do
             {
@@ -230,7 +230,14 @@ default
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
             } while(llGetAgentInfo(owner) & AGENT_TYPING);
             for (i = 0; i < primListLen; ++i)
-                llSetLinkColor(llList2Integer(primsToRecolor, i), llList2Vector(originalColors, i), ALL_SIDES);
+            {
+                integer link = llList2Integer(primsToRecolor, i);
+                list faces = llParseString2List(llList2String(originalColors, i), [";"], [""]);
+                integer face_count = llGetListLength(faces);
+                integer j = 0;
+                for (; j < face_count; ++j)
+                    llSetLinkColor(link, (vector)llList2String(faces, j), j); // Caveat: Must explicit cast to vector
+            }
         }
         else
         {
