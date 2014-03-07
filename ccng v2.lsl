@@ -58,12 +58,6 @@ DebugMessage(string message)
         llOwnerSay("D: " + message);
 }
 
-
-string GetLinkDesc(integer link)
-{
-    return (string)llGetObjectDetails(llGetLinkKey(link), (list)OBJECT_DESC);
-}
-
 list colorList = [
     <1.00000, 0.00000, 0.00000>,
     <0.31373, 0.00000, 0.00000>,
