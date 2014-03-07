@@ -20,7 +20,7 @@ as the name is changed.
 // See https://github.com/Ociidii-Works/ZenAxeColorChanger/blob/master/README.md
 
 // user preferences //
-float glowAmount = 0.08;        // How much glow, negative for none
+float glowAmount = 0.08;        // How much glow, negative for no change
 integer colorRoot = TRUE;       // Needed for checking if we want to recolor the root prim
 integer MessagesLevel = 0;      // Verbosity.
 
