@@ -59,121 +59,87 @@ string GetLinkDesc(integer link)
     return (string)llGetObjectDetails(llGetLinkKey(link), [OBJECT_DESC]);
 }
 
-// Liru Note: This list is only used by colorit(), it can be optimized out by hardcoding the colors inside there.
-list colorList = [
-    <1.00000, 0.00000, 0.00000>,
-    <0.31373, 0.00000, 0.00000>,
-    <1.00000, 0.50196, 0.00000>,
-    <1.00000, 0.80000, 0.40000>,
-    <0.70588, 0.25098, 0.00000>,
-    <1.00000, 0.40000, 0.40000>,
-    <0.00000, 0.00000, 1.00000>,
-    <0.40000, 1.00000, 1.00000>,
-    <0.00000, 0.00000, 0.31373>,
-    <1.00000, 0.81961, 0.00000>,
-    <1.00000, 1.00000, 0.40000>,
-    <0.84314, 0.84314, 0.00000>,
-    <1.00000, 1.00000, 1.00000>,
-    <0.50196, 0.00000, 0.50196>,
-    <0.80000, 0.40000, 1.00000>,
-    <0.25098, 0.00000, 0.50196>,
-    <0.00000, 1.00000, 0.00000>,
-    <0.50196, 1.00000, 0.00000>,
-    <0.00000, 0.50196, 0.00000>,
-    <0.00000, 0.00000, 0.00000>,
-    <0.60000, 0.60000, 0.60000>,
-    <0.40000, 0.40000, 0.40000>,
-    <0.20000, 0.20000, 0.20000>,
-    <0.65490, 0.96863, 0.24314>,
-    <0.60784, 0.97255, 1.00000>,
-    <1.00000, 0.25098, 0.00000>,
-    <0.75294, 1.00000, 0.00000>,
-    <0.58431, 0.52549, 0.86667>,
-    <1, 0.4705882352941176, 0.2980392156862745>, // singularity
-    <0.1803921568627451,0.3333333333333333,0.8823529411764706>, // smoothblue
-    <0.607843137254902,0.972549019607843,1>, // arc
-    <0.9803921568627451,0.3019607843137255,0.6862745098039216>, //hot pink
-    <0.7725490196078431,0.3568627450980392,0.1725490196078431> // redhead
-    ];
-
 vector random_color() { return <llFrand(1.0),llFrand(1.0),llFrand(1.0)>; }
 
 colorit(string message)
 {
     message = llToLower(message);
+    vector color;
     if(message == "glow red")
-        doColor(llList2Vector(colorList,0));
+        color = <1.00000, 0.00000, 0.00000>;
     else if(message == "glow dkred")
-        doColor(llList2Vector(colorList,1));
+        color = <0.31373, 0.00000, 0.00000>;
     else if(message == "glow orange")
-        doColor(llList2Vector(colorList,2));
+        color = <1.00000, 0.50196, 0.00000>;
     else if(message == "glow ltorange")
-        doColor(llList2Vector(colorList,3));
+        color = <1.00000, 0.80000, 0.40000>;
     else if(message == "glow dkorange")
-        doColor(llList2Vector(colorList,4));
+        color = <0.70588, 0.25098, 0.00000>;
     else if(message == "glow pink")
-        doColor(llList2Vector(colorList,5));
+        color = <1.00000, 0.40000, 0.40000>;
     else if(message == "glow blue")
-        doColor(llList2Vector(colorList,6));
+        color = <0.00000, 0.00000, 1.00000>;
     else if(message == "glow ltblue")
-        doColor(llList2Vector(colorList,7));
+        color = <0.40000, 1.00000, 1.00000>;
     else if(message == "glow dkblue")
-        doColor(llList2Vector(colorList,8));
+        color = <0.00000, 0.00000, 0.31373>;
     else if(message == "glow yellow")
-        doColor(llList2Vector(colorList,9));
+        color = <1.00000, 0.81961, 0.00000>;
     else if(message == "glow ltyellow")
-        doColor(llList2Vector(colorList,10));
+        color = <1.00000, 1.00000, 0.40000>;
     else if(message == "glow dkyellow")
-        doColor(llList2Vector(colorList,11));
-    else if(message == "glow wjite")
-        doColor(llList2Vector(colorList,12));
+        color = <0.84314, 0.84314, 0.00000>;
+    else if(message == "glow white")
+        color = <1.00000, 1.00000, 1.00000>;
     else if(message == "glow purple")
-        doColor(llList2Vector(colorList,13));
+        color = <0.50196, 0.00000, 0.50196>;
     else if(message == "glow ltpurple")
-        doColor(llList2Vector(colorList,14));
+        color = <0.80000, 0.40000, 1.00000>;
     else if(message == "glow dkpurple")
-        doColor(llList2Vector(colorList,15));
+        color = <0.25098, 0.00000, 0.50196>;
     else if(message == "glow green")
-        doColor(llList2Vector(colorList,16));
+        color = <0.00000, 1.00000, 0.00000>;
     else if(message == "glow ltgreen")
-        doColor(llList2Vector(colorList,17));
+        color = <0.50196, 1.00000, 0.00000>;
     else if(message == "glow dkgreen")
-        doColor(llList2Vector(colorList,18));
+        color = <0.00000, 0.50196, 0.00000>;
     else if(message == "glow black")
-        doColor(llList2Vector(colorList,19));
+        color = <0.00000, 0.00000, 0.00000>;
     else if(message == "glow ltgray")
-        doColor(llList2Vector(colorList,20));
+        color = <0.60000, 0.60000, 0.60000>;
     else if(message == "glow gray")
-        doColor(llList2Vector(colorList,21));
+        color = <0.40000, 0.40000, 0.40000>;
     else if(message == "glow dkgray")
-        doColor(llList2Vector(colorList,22));
+        color = <0.20000, 0.20000, 0.20000>;
     else if(message == "glow reactor")
-        doColor(llList2Vector(colorList,23));
+        color = <0.65490, 0.96863, 0.24314>;
     else if(message == "glow tron")
-        doColor(llList2Vector(colorList,24));
+        color = <0.60784, 0.97255, 1.00000>;
     else if(message == "glow corrupt")
-        doColor(llList2Vector(colorList,25));
+        color = <1.00000, 0.25098, 0.00000>;
     else if(message == "glow viral")
-        doColor(llList2Vector(colorList,26));
+        color = <0.75294, 1.00000, 0.00000>;
     else if (message == "glow violet")
-        doColor(llList2Vector(colorList,27));
+        color = <0.58431, 0.52549, 0.86667>;
     else if (message == "glow singularity")
-        doColor(llList2Vector(colorList,28));
+        color = <1, 0.4705882352941176, 0.280392156862745>; // singularity
     else if (message == "glow smoothblue")
-        doColor(llList2Vector(colorList,29));
+        color = <0.1803921568627451,0.3333333333333333,0.8823529411764706>; // smoothblue
     else if (message == "glow arc")
-        doColor(llList2Vector(colorList,30));
+        color = <0.607843137254902,0.972549019607843,1>; // arc
     else if (message == "glow hotpink")
-        doColor(llList2Vector(colorList,31));
+        color = <0.9803921568627451,0.3019607843137255,0.6862745098039216>; //hot pink
     else if (message == "glow redhead")
-        doColor(llList2Vector(colorList,32));
-    // end of list
+        color = <0.7725490196078431,0.3568627450980392,0.1725490196078431>; // redhead
     else if (message == "glow random")
-            doColor(random_color());
+        color = random_color();
     else
     {
         llOwnerSay("Wrong color, or script is outdated! \n"+ "Get the latest version and usage information at https://github.com/Ociidii-Works/ZenAxeColorChanger !");
+        return;
     }
+    doColor(color);
+
     if(llGetFreeMemory() < 1000)
     {
         llOwnerSay("Running out of memory!\nResetting!");
