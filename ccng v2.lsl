@@ -20,15 +20,14 @@ as the name is changed.
 // See https://github.com/Ociidii-Works/ZenAxeColorChanger/blob/master/README.md
 
 // user preferences //
-float glowAmount = 0.08;        // How much glow
-integer colorRoot = 1;          // Needed for checking if we want to recolor the root prim
-list primsToRecolor = [];       // Internal use, don't touch.
-
-integer MessagesLevel = 0; /// Verbosity.
+float glowAmount = 0.08;        // How much glow, negative for none
+integer colorRoot = TRUE;       // Needed for checking if we want to recolor the root prim
+integer MessagesLevel = 0;      // Verbosity.
 
 ///////////////////////////////////////////////////////////////////
 // internal variables, LEAVE THEM ALONE!! D:
 key owner;                      // Owner, set in state_entry
+list primsToRecolor = [];       // Internal use, don't touch.
 integer primListLen;            // Length of the prim list. used for checks
 ///////////////////////////////////////////////////////////////////
 
@@ -37,154 +36,123 @@ integer primListLen;            // Length of the prim list. used for checks
 
 
 ////// Debug system /////////
-ErrorMessage(string message)
-{
-    if(MessagesLevel >= 1)
-        llOwnerSay("E: " + message);
-}
-InfoMessage(string message)
-{
-    if(MessagesLevel >= 2)
-        llOwnerSay("I: " + message);
-}
-DebugMessage(string message)
-{
-    if(MessagesLevel >= 3)
-        llOwnerSay("D: " + message);
-}
+ErrorMessage(string message) { if (MessagesLevel >= 1) llOwnerSay("E: " + message); }
+InfoMessage(string message)  { if (MessagesLevel >= 2) llOwnerSay("I: " + message); }
+DebugMessage(string message) { if (MessagesLevel >= 3) llOwnerSay("D: " + message); }
 
-vector random_color() { return <llFrand(1.0),llFrand(1.0),llFrand(1.0)>; }
+vector random_color() { return <llFrand(1.0), llFrand(1.0), llFrand(1.0)>; }
 
-translateColor(string message)
+vector translateColor(string message)
 {
     message = llToLower(message);
-    vector color;
-    if(message == "glow red")
-        color = <1.00000, 0.00000, 0.00000>;
-    else if(message == "glow dkred")
-        color = <0.31373, 0.00000, 0.00000>;
-    else if(message == "glow orange")
-        color = <1.00000, 0.50196, 0.00000>;
-    else if(message == "glow ltorange")
-        color = <1.00000, 0.80000, 0.40000>;
-    else if(message == "glow dkorange")
-        color = <0.70588, 0.25098, 0.00000>;
-    else if(message == "glow pink")
-        color = <1.00000, 0.40000, 0.40000>;
-    else if(message == "glow blue")
-        color = <0.00000, 0.00000, 1.00000>;
-    else if(message == "glow ltblue")
-        color = <0.40000, 1.00000, 1.00000>;
-    else if(message == "glow dkblue")
-        color = <0.00000, 0.00000, 0.31373>;
-    else if(message == "glow yellow")
-        color = <1.00000, 0.81961, 0.00000>;
-    else if(message == "glow ltyellow")
-        color = <1.00000, 1.00000, 0.40000>;
-    else if(message == "glow dkyellow")
-        color = <0.84314, 0.84314, 0.00000>;
-    else if(message == "glow white")
-        color = <1.00000, 1.00000, 1.00000>;
-    else if(message == "glow purple")
-        color = <0.50196, 0.00000, 0.50196>;
-    else if(message == "glow ltpurple")
-        color = <0.80000, 0.40000, 1.00000>;
-    else if(message == "glow dkpurple")
-        color = <0.25098, 0.00000, 0.50196>;
-    else if(message == "glow green")
-        color = <0.00000, 1.00000, 0.00000>;
-    else if(message == "glow ltgreen")
-        color = <0.50196, 1.00000, 0.00000>;
-    else if(message == "glow dkgreen")
-        color = <0.00000, 0.50196, 0.00000>;
-    else if(message == "glow black")
-        color = <0.00000, 0.00000, 0.00000>;
-    else if(message == "glow ltgray")
-        color = <0.60000, 0.60000, 0.60000>;
-    else if(message == "glow gray")
-        color = <0.40000, 0.40000, 0.40000>;
-    else if(message == "glow dkgray")
-        color = <0.20000, 0.20000, 0.20000>;
-    else if(message == "glow reactor")
-        color = <0.65490, 0.96863, 0.24314>;
-    else if(message == "glow tron")
-        color = <0.60784, 0.97255, 1.00000>;
-    else if(message == "glow corrupt")
-        color = <1.00000, 0.25098, 0.00000>;
-    else if(message == "glow viral")
-        color = <0.75294, 1.00000, 0.00000>;
-    else if (message == "glow violet")
-        color = <0.58431, 0.52549, 0.86667>;
-    else if (message == "glow singularity")
-        color = <1, 0.4705882352941176, 0.280392156862745>; // singularity
-    else if (message == "glow smoothblue")
-        color = <0.1803921568627451,0.3333333333333333,0.8823529411764706>; // smoothblue
-    else if (message == "glow arc")
-        color = <0.607843137254902,0.972549019607843,1>; // arc
-    else if (message == "glow hotpink")
-        color = <0.9803921568627451,0.3019607843137255,0.6862745098039216>; //hot pink
-    else if (message == "glow redhead")
-        color = <0.7725490196078431,0.3568627450980392,0.1725490196078431>; // redhead
-    else if (message == "glow random")
-        color = random_color();
-    else
-    {
-        llOwnerSay("Wrong color, or script is outdated! \n"+ "Get the latest version and usage information at https://github.com/Ociidii-Works/ZenAxeColorChanger !");
-        return;
-    }
-    setColor(color);
-
-    if(llGetFreeMemory() < 1000)
-    {
-        llOwnerSay("Running out of memory!\nResetting!");
-        llResetScript();
-    }
+    if (llGetSubString(message, 0, 4) != "glow ") llResetScript(); // Invalid message, only way to abort is to reset.
+    if (message == "glow red")
+        return <1.00000, 0.00000, 0.00000>;
+    if (message == "glow dkred")
+        return <0.31373, 0.00000, 0.00000>;
+    if (message == "glow orange")
+        return <1.00000, 0.50196, 0.00000>;
+    if (message == "glow ltorange")
+        return <1.00000, 0.80000, 0.40000>;
+    if (message == "glow dkorange")
+        return <0.70588, 0.25098, 0.00000>;
+    if (message == "glow pink")
+        return <1.00000, 0.40000, 0.40000>;
+    if (message == "glow blue")
+        return <0.00000, 0.00000, 1.00000>;
+    if (message == "glow ltblue")
+        return <0.40000, 1.00000, 1.00000>;
+    if (message == "glow dkblue")
+        return <0.00000, 0.00000, 0.31373>;
+    if (message == "glow yellow")
+        return <1.00000, 0.81961, 0.00000>;
+    if (message == "glow ltyellow")
+        return <1.00000, 1.00000, 0.40000>;
+    if (message == "glow dkyellow")
+        return <0.84314, 0.84314, 0.00000>;
+    if (message == "glow white")
+        return <1.00000, 1.00000, 1.00000>;
+    if (message == "glow purple")
+        return <0.50196, 0.00000, 0.50196>;
+    if (message == "glow ltpurple")
+        return <0.80000, 0.40000, 1.00000>;
+    if (message == "glow dkpurple")
+        return <0.25098, 0.00000, 0.50196>;
+    if (message == "glow green")
+        return <0.00000, 1.00000, 0.00000>;
+    if (message == "glow ltgreen")
+        return <0.50196, 1.00000, 0.00000>;
+    if (message == "glow dkgreen")
+        return <0.00000, 0.50196, 0.00000>;
+    if (message == "glow black")
+        return <0.00000, 0.00000, 0.00000>;
+    if (message == "glow ltgray")
+        return <0.60000, 0.60000, 0.60000>;
+    if (message == "glow gray")
+        return <0.40000, 0.40000, 0.40000>;
+    if (message == "glow dkgray")
+        return <0.20000, 0.20000, 0.20000>;
+    if (message == "glow reactor")
+        return <0.65490, 0.96863, 0.24314>;
+    if (message == "glow tron")
+        return <0.60784, 0.97255, 1.00000>;
+    if (message == "glow corrupt")
+        return <1.00000, 0.25098, 0.00000>;
+    if (message == "glow viral")
+        return <0.75294, 1.00000, 0.00000>;
+    if (message == "glow violet")
+        return <0.58431, 0.52549, 0.86667>;
+    if (message == "glow singularity")
+        return <1, 0.4705882352941176, 0.280392156862745>;
+    if (message == "glow smoothblue")
+        return <0.1803921568627451,0.3333333333333333,0.8823529411764706>;
+    if (message == "glow arc")
+        return <0.607843137254902,0.972549019607843,1>; // arc
+    if (message == "glow hotpink")
+        return <0.9803921568627451,0.3019607843137255,0.6862745098039216>;
+    if (message == "glow redhead")
+        return <0.7725490196078431,0.3568627450980392,0.1725490196078431>;
+    if (message == "glow random")
+        return random_color();
 }
 
 listPrims()
 {
-    // Liru Note: Commented out code in this function has been optimized out, as this function is now called to refresh prim count
-    primListLen = 0; //llGetListLength(primsToRecolor);
-    //if (primListLen < 1)
+    primListLen = 0;
+    list recolorNames = ["colorprim"];  // Name all recolorable prims here, case sensitive!
+    integer fp = 0;                     // counter
+    for(; fp <= llGetNumberOfPrims(); ++fp)
     {
-        list recolorNames = ["colorprim"];  // Name all recolorable prims here
-        integer fp = 0;                     // counter
-        for(; fp <= llGetNumberOfPrims(); ++fp)
+        if (llListFindList(recolorNames, [llGetLinkName(fp)]) != -1)
         {
-            if (llListFindList(recolorNames, [llToLower(llGetLinkName(fp))]) != -1) // Liru Note: Optimize out the llToLower call by naming prims in lowercase
-            {
-                primsToRecolor += fp;
-                ++primListLen;
-            }
+            primsToRecolor += fp;
+            ++primListLen;
         }
-        //primListLen = llGetListLength(primsToRecolor);
     }
-    if (colorRoot == 1)
-        if (llListFindList(primsToRecolor, [LINK_ROOT]) == -1) // Not in the list, add it
-            primsToRecolor += LINK_ROOT;
-    InfoMessage("List Length: "+ (string)primListLen);
+    if (colorRoot && llListFindList(primsToRecolor, [LINK_ROOT]) == -1) // User wants root, but not in the list
+        primsToRecolor += LINK_ROOT;
+    InfoMessage("List Length: " + (string)primListLen);
 }
+
 setColor(vector color)
 {
-    string stringcolor = (string)color;
-    DebugMessage("setColor received "+ stringcolor);
-    if(colorRoot == 1)
-        InfoMessage("Setting Root Color to: "+ stringcolor);
     integer i = 0;
     for(; i < primListLen; ++i)
     {
         integer link = llList2Integer(primsToRecolor, i);
         // Set color
-        /* Liru Note: if glowAmount was 0, we could just:
+        if (link == LINK_ROOT || glowAmount < 0) // Don't glow root, negative glow is no change
+        {
+            if (link == LINK_ROOT) InfoMessage("Setting Root Color to: " + (string)color);
             llSetLinkColor(link, color, ALL_SIDES);
-        */
-        if (link == LINK_ROOT) // Don't glow root
-            llSetLinkColor(link, color, ALL_SIDES);
+        }
         else
-        llSetLinkPrimitiveParamsFast(link,
-            [PRIM_COLOR,ALL_SIDES,color,1.0,
-            PRIM_GLOW,ALL_SIDES,glowAmount
-            ]);
+        {
+            llSetLinkPrimitiveParamsFast(link,
+                [PRIM_COLOR,ALL_SIDES,color,1.0,
+                PRIM_GLOW,ALL_SIDES,glowAmount
+                ]);
+        }
     }
 }
 
@@ -195,14 +163,15 @@ default
     {
         owner = llGetOwner();
         listPrims();
-        llListen(9,"",owner,"");
+        llListen(9, "", owner, "");
 //      llSetMemoryLimit(llGetUsedMemory() + 4096);
         llSetTimerEvent(0.5);
     }
+
     // We re-use the listener system from what we are replacing,
     listen(integer channel, string name, key is, string message)
     {
-        translateColor(message);
+        setColor(translateColor(message));
         InfoMessage(message);
     }
 
@@ -217,16 +186,14 @@ default
 
     timer()
     {
-        if(llGetAgentInfo(owner) & AGENT_TYPING)
+        if (llGetAgentInfo(owner) & AGENT_TYPING)
         {
             list originalColors;
             integer i = 0;
             for (; i < primListLen; ++i)
                 originalColors += llDumpList2String(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i),[PRIM_COLOR,ALL_SIDES]), ";");
-            llSetTimerEvent(0.2);
             do
             {
-                // we don't use the translateColor() function here because it's too expansive
                 setColor(random_color());
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
             } while(llGetAgentInfo(owner) & AGENT_TYPING);
@@ -239,11 +206,6 @@ default
                 for (; j < face_count; ++j)
                     llSetLinkColor(link, (vector)llList2String(faces, j), j); // Caveat: Must explicit cast to vector
             }
-        }
-        else
-        {
-            //DebugMessage((string)originalColor); // Liru Note: We no longer hold onto original color, if it's really so important, get it here...
-            llSetTimerEvent(0.5);
         }
     }
 }
