@@ -172,11 +172,15 @@ setColor(vector color)
     integer i = 0;
     for(; i < primListLen; ++i)
     {
+        integer link = llList2Integer(primsToRecolor, i);
         // Set color
         /* Liru Note: if glowAmount was 0, we could just:
-            llSetLinkColor(llList2Integer(primsToRecolor, i), color, ALL_SIDES);
+            llSetLinkColor(link, color, ALL_SIDES);
         */
-        llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i),
+        if (link == LINK_ROOT) // Don't glow root
+            llSetLinkColor(link, color, ALL_SIDES);
+        else
+        llSetLinkPrimitiveParamsFast(link,
             [PRIM_COLOR,ALL_SIDES,color,1.0,
             PRIM_GLOW,ALL_SIDES,glowAmount
             ]);
@@ -214,7 +218,7 @@ default
     {
         if(llGetAgentInfo(owner) & AGENT_TYPING)
         {
-            list originalColors[];
+            list originalColors;
             integer i = 0;
             for (; i < primsListLen; ++i)
                 originalColors += llList2Vector(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i),[PRIM_COLOR,2]),0);
