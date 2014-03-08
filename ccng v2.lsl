@@ -45,7 +45,11 @@ vector random_color() { return <llFrand(1.0), llFrand(1.0), llFrand(1.0)>; }
 vector translateColor(string message)
 {
     message = llToLower(message);
-    if (llGetSubString(message, 0, 4) != "glow ") llResetScript(); // Invalid message, only way to abort is to reset.
+    if (llGetSubString(message, 0, 4) != "glow ")
+    {
+        llResetScript(); // Invalid message, only way to abort is to reset.
+        return ZERO_VECTOR;
+    }
     if (message == "glow red")
         return <1.00000, 0.00000, 0.00000>;
     if (message == "glow dkred")
