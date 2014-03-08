@@ -108,13 +108,14 @@ vector translateColor(string message)
     if (message == "glow smoothblue")
         return <0.1803921568627451,0.3333333333333333,0.8823529411764706>;
     if (message == "glow arc")
-        return <0.607843137254902,0.972549019607843,1>; // arc
+        return <0.607843137254902,0.972549019607843,1>;
     if (message == "glow hotpink")
         return <0.9803921568627451,0.3019607843137255,0.6862745098039216>;
     if (message == "glow redhead")
         return <0.7725490196078431,0.3568627450980392,0.1725490196078431>;
     if (message == "glow random")
         return random_color();
+    return <9, 9, 9>;
 }
 
 listPrims()
