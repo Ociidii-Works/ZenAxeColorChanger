@@ -207,6 +207,7 @@ default
                 setColor(random_color());
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
             } while(llGetAgentInfo(owner) & AGENT_TYPING);
+            DebugMessage(llDumpList2String(primsToRecolor, "RawR"));
             DebugMessage(llDumpList2String(originalColors, "  |  "));
             for (i = 0; i < primListLen; ++i)
             {
