@@ -20,21 +20,15 @@ as the name is changed.
 // See https://github.com/Ociidii-Works/ZenAxeColorChanger/blob/master/README.md
 
 // user preferences //
-float glowAmount = 0.08;        // How much glow
-integer doColorRoot = 1;          // Needed for checking if we want to recolor the root prim
-list primsToRecolor = [];           // Internal use, don't touch.
-
-integer MessagesLevel = 0; /// Verbosity.
+float glowAmount = 0.08;        // How much glow, negative for no change
+integer colorRoot = TRUE;       // Needed for checking if we want to recolor the root prim
+integer MessagesLevel = 0;      // Verbosity.
 
 ///////////////////////////////////////////////////////////////////
 // internal variables, LEAVE THEM ALONE!! D:
-vector color;                   // Internal use, don't touch.
-vector originalColor;                  // original color of the prim
-integer fp;                     // counter
-integer isTyping;               // Typing indicator bit
-integer x;                      // counter
-integer primListLen;                // Length of the prim list. used for checks
-integer cCheckID;               // color change bug fix for single prim
+key owner;                      // Owner, set in state_entry
+list primsToRecolor = [];       // Internal use, don't touch.
+integer primListLen;            // Length of the prim list. used for checks
 ///////////////////////////////////////////////////////////////////
 
 
@@ -42,172 +36,125 @@ integer cCheckID;               // color change bug fix for single prim
 
 
 ////// Debug system /////////
-ErrorMessage(string message)
-{
-    if(MessagesLevel >= 1)
-        llOwnerSay("E: " + message);
-}
-InfoMessage(string message)
-{
-    if(MessagesLevel >= 2)
-        llOwnerSay("I: " + message);
-}
-DebugMessage(string message)
-{
-    if(MessagesLevel >= 3)
-        llOwnerSay("D: " + message);
-}
+ErrorMessage(string message) { if (MessagesLevel >= 1) llOwnerSay("E: " + message); }
+InfoMessage(string message)  { if (MessagesLevel >= 2) llOwnerSay("I: " + message); }
+DebugMessage(string message) { if (MessagesLevel >= 3) llOwnerSay("D: " + message); }
 
-list colorList = [
-    <1.00000, 0.00000, 0.00000>,
-    <0.31373, 0.00000, 0.00000>,
-    <1.00000, 0.50196, 0.00000>,
-    <1.00000, 0.80000, 0.40000>,
-    <0.70588, 0.25098, 0.00000>,
-    <1.00000, 0.40000, 0.40000>,
-    <0.00000, 0.00000, 1.00000>,
-    <0.40000, 1.00000, 1.00000>,
-    <0.00000, 0.00000, 0.31373>,
-    <1.00000, 0.81961, 0.00000>,
-    <1.00000, 1.00000, 0.40000>,
-    <0.84314, 0.84314, 0.00000>,
-    <1.00000, 1.00000, 1.00000>,
-    <0.50196, 0.00000, 0.50196>,
-    <0.80000, 0.40000, 1.00000>,
-    <0.25098, 0.00000, 0.50196>,
-    <0.00000, 1.00000, 0.00000>,
-    <0.50196, 1.00000, 0.00000>,
-    <0.00000, 0.50196, 0.00000>,
-    <0.00000, 0.00000, 0.00000>,
-    <0.60000, 0.60000, 0.60000>,
-    <0.40000, 0.40000, 0.40000>,
-    <0.20000, 0.20000, 0.20000>,
-    <0.65490, 0.96863, 0.24314>,
-    <0.60784, 0.97255, 1.00000>,
-    <1.00000, 0.25098, 0.00000>,
-    <0.75294, 1.00000, 0.00000>,
-    <0.58431, 0.52549, 0.86667>,
-    <1, 0.4705882352941176, 0.2980392156862745>, // singularity
-    <0.1803921568627451,0.3333333333333333,0.8823529411764706>, // smoothblue
-    <0.607843137254902,0.972549019607843,1>, // arc
-    <0.9803921568627451,0.3019607843137255,0.6862745098039216>, //hot pink
-    <0.7725490196078431,0.3568627450980392,0.1725490196078431> // redhead
-    ];
+vector random_color() { return <llFrand(1.0), llFrand(1.0), llFrand(1.0)>; }
 
-translateColor(string message)
+vector translateColor(string message)
 {
-    if(llToLower(message) == "glow red")
-        runColorLoop(llList2Vector(colorList,0));
-    else if(llToLower(message) == "glow dkred")
-        runColorLoop(llList2Vector(colorList,1));
-    else if(llToLower(message) == "glow orange")
-        runColorLoop(llList2Vector(colorList,2));
-    else if(llToLower(message) == "glow ltorange")
-        runColorLoop(llList2Vector(colorList,3));
-    else if(llToLower(message) == "glow dkorange")
-        runColorLoop(llList2Vector(colorList,4));
-    else if(llToLower(message) == "glow pink")
-        runColorLoop(llList2Vector(colorList,5));
-    else if(llToLower(message) == "glow blue")
-        runColorLoop(llList2Vector(colorList,6));
-    else if(llToLower(message) == "glow ltblue")
-        runColorLoop(llList2Vector(colorList,7));
-    else if(llToLower(message) == "glow dkblue")
-        runColorLoop(llList2Vector(colorList,8));
-    else if(llToLower(message) == "glow yellow")
-        runColorLoop(llList2Vector(colorList,9));
-    else if(llToLower(message) == "glow ltyellow")
-        runColorLoop(llList2Vector(colorList,10));
-    else if(llToLower(message) == "glow dkyellow")
-        runColorLoop(llList2Vector(colorList,11));
-    else if(llToLower(message) == "glow wjite")
-        runColorLoop(llList2Vector(colorList,12));
-    else if(llToLower(message) == "glow purple")
-        runColorLoop(llList2Vector(colorList,13));
-    else if(llToLower(message) == "glow ltpurple")
-        runColorLoop(llList2Vector(colorList,14));
-    else if(llToLower(message) == "glow dkpurple")
-        runColorLoop(llList2Vector(colorList,15));
-    else if(llToLower(message) == "glow green")
-        runColorLoop(llList2Vector(colorList,16));
-    else if(llToLower(message) == "glow ltgreen")
-        runColorLoop(llList2Vector(colorList,17));
-    else if(llToLower(message) == "glow dkgreen")
-        runColorLoop(llList2Vector(colorList,18));
-    else if(llToLower(message) == "glow black")
-        runColorLoop(llList2Vector(colorList,19));
-    else if(llToLower(message) == "glow ltgray")
-        runColorLoop(llList2Vector(colorList,20));
-    else if(llToLower(message) == "glow gray")
-        runColorLoop(llList2Vector(colorList,21));
-    else if(llToLower(message) == "glow dkgray")
-        runColorLoop(llList2Vector(colorList,22));
-    else if(llToLower(message) == "glow reactor")
-        runColorLoop(llList2Vector(colorList,23));
-    else if(llToLower(message) == "glow tron")
-        runColorLoop(llList2Vector(colorList,24));
-    else if(llToLower(message) == "glow corrupt")
-        runColorLoop(llList2Vector(colorList,25));
-    else if(llToLower(message) == "glow viral")
-        runColorLoop(llList2Vector(colorList,26));
-    else if (llToLower(message) == "glow violet")
-        runColorLoop(llList2Vector(colorList,27));
-    else if (llToLower(message) == "glow singularity")
-        runColorLoop(llList2Vector(colorList,28));
-    else if (llToLower(message) == "glow smoothblue")
-        runColorLoop(llList2Vector(colorList,29));
-    else if (llToLower(message) == "glow arc")
-        runColorLoop(llList2Vector(colorList,30));
-    else if (llToLower(message) == "glow hotpink")
-        runColorLoop(llList2Vector(colorList,31));
-    else if (llToLower(message) == "glow redhead")
-        runColorLoop(llList2Vector(colorList,32));
-    // end of list
-    else if(llToLower(message) == "glow random")
-            runColorLoop(<llFrand(1.0),llFrand(1.0),llFrand(1.0)>);
-    else
-    {
-        llOwnerSay("Wrong color, or script is outdated! \n"+ "Get the latest version and usage information at https://github.com/Ociidii-Works/ZenAxeColorChanger !");
-    }
-    if(llGetFreeMemory() < 1000)
-    {
-        llOwnerSay("Running out of memory!\nResetting!");
-        llResetScript();
-    }
+    message = llToLower(message);
+    if (llGetSubString(message, 0, 4) != "glow ") // Invalid message, only way to abort is to give bad color vector.
+        return <9,9,9>;
+    if (message == "glow red")
+        return <1.00000, 0.00000, 0.00000>;
+    if (message == "glow dkred")
+        return <0.31373, 0.00000, 0.00000>;
+    if (message == "glow orange")
+        return <1.00000, 0.50196, 0.00000>;
+    if (message == "glow ltorange")
+        return <1.00000, 0.80000, 0.40000>;
+    if (message == "glow dkorange")
+        return <0.70588, 0.25098, 0.00000>;
+    if (message == "glow pink")
+        return <1.00000, 0.40000, 0.40000>;
+    if (message == "glow blue")
+        return <0.00000, 0.00000, 1.00000>;
+    if (message == "glow ltblue")
+        return <0.40000, 1.00000, 1.00000>;
+    if (message == "glow dkblue")
+        return <0.00000, 0.00000, 0.31373>;
+    if (message == "glow yellow")
+        return <1.00000, 0.81961, 0.00000>;
+    if (message == "glow ltyellow")
+        return <1.00000, 1.00000, 0.40000>;
+    if (message == "glow dkyellow")
+        return <0.84314, 0.84314, 0.00000>;
+    if (message == "glow white")
+        return <1.00000, 1.00000, 1.00000>;
+    if (message == "glow purple")
+        return <0.50196, 0.00000, 0.50196>;
+    if (message == "glow ltpurple")
+        return <0.80000, 0.40000, 1.00000>;
+    if (message == "glow dkpurple")
+        return <0.25098, 0.00000, 0.50196>;
+    if (message == "glow green")
+        return <0.00000, 1.00000, 0.00000>;
+    if (message == "glow ltgreen")
+        return <0.50196, 1.00000, 0.00000>;
+    if (message == "glow dkgreen")
+        return <0.00000, 0.50196, 0.00000>;
+    if (message == "glow black")
+        return <0.00000, 0.00000, 0.00000>;
+    if (message == "glow ltgray")
+        return <0.60000, 0.60000, 0.60000>;
+    if (message == "glow gray")
+        return <0.40000, 0.40000, 0.40000>;
+    if (message == "glow dkgray")
+        return <0.20000, 0.20000, 0.20000>;
+    if (message == "glow reactor")
+        return <0.65490, 0.96863, 0.24314>;
+    if (message == "glow tron")
+        return <0.60784, 0.97255, 1.00000>;
+    if (message == "glow corrupt")
+        return <1.00000, 0.25098, 0.00000>;
+    if (message == "glow viral")
+        return <0.75294, 1.00000, 0.00000>;
+    if (message == "glow violet")
+        return <0.58431, 0.52549, 0.86667>;
+    if (message == "glow singularity")
+        return <1, 0.4705882352941176, 0.280392156862745>;
+    if (message == "glow smoothblue")
+        return <0.1803921568627451,0.3333333333333333,0.8823529411764706>;
+    if (message == "glow arc")
+        return <0.607843137254902,0.972549019607843,1>;
+    if (message == "glow hotpink")
+        return <0.9803921568627451,0.3019607843137255,0.6862745098039216>;
+    if (message == "glow redhead")
+        return <0.7725490196078431,0.3568627450980392,0.1725490196078431>;
+    if (message == "glow random")
+        return random_color();
+    return <9, 9, 9>;
 }
 
 listPrims()
 {
-    if(llGetListLength(primsToRecolor) < 1)
+    primListLen = 0;
+    list recolorNames = ["ColorPrim"];  // Name all recolorable prims here, case sensitive!
+    integer fp = 0;                     // counter
+    for(; fp <= llGetNumberOfPrims(); ++fp)
     {
-        for(fp = 0; fp <= llGetNumberOfPrims(); fp ++)
+        if (llListFindList(recolorNames, [llGetLinkName(fp)]) != -1)
         {
-            if(llToLower(llGetLinkName(fp)) == "colorprim")
-            {
-                primsToRecolor += fp;
-            }
+            primsToRecolor += fp;
+            ++primListLen;
         }
     }
+    if (colorRoot && llListFindList(primsToRecolor, [LINK_ROOT]) == -1) // User wants root, but not in the list
+        primsToRecolor += LINK_ROOT;
+    InfoMessage("List Length: " + (string)primListLen);
 }
-runColorLoop(vector runColor)
+
+setColor(vector color)
 {
-    DebugMessage("runColorLoop received "+ (string)runColor);
-    if(doColorRoot == 1)
+    if (color == <9,9,9>) return; // Minor hack
+    integer i = 0;
+    for(; i < primListLen; ++i)
     {
-        InfoMessage("Setting Root Color to: "+ (string)runColor);
-        llSetColor(runColor,ALL_SIDES);
-    }
-    if(primListLen > 0)
-    {
-        integer i;
-        for(i = 0; i <primListLen;)
+        integer link = llList2Integer(primsToRecolor, i);
+        // Set color
+        if (link == LINK_ROOT || glowAmount < 0) // Don't glow root, negative glow is no change
         {
-            // Set color
-            llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i),
-                [PRIM_COLOR,ALL_SIDES,runColor,1.0,
+            if (link == LINK_ROOT) InfoMessage("Setting Root Color to: " + (string)color);
+            llSetLinkColor(link, color, ALL_SIDES);
+        }
+        else
+        {
+            llSetLinkPrimitiveParamsFast(link,
+                [PRIM_COLOR,ALL_SIDES,color,1.0,
                 PRIM_GLOW,ALL_SIDES,glowAmount
                 ]);
-             i++;
         }
     }
 }
@@ -217,58 +164,57 @@ default
 {
     state_entry()
     {
+        owner = llGetOwner();
         listPrims();
-        primListLen = llGetListLength(primsToRecolor);
-        InfoMessage("List Lenght: "+ (string)primListLen);
-        llListen(9,"",llGetOwner(),"");
+        llListen(9, "", owner, "");
 //      llSetMemoryLimit(llGetUsedMemory() + 4096);
         llSetTimerEvent(0.5);
     }
+
     // We re-use the listener system from what we are replacing,
     listen(integer channel, string name, key is, string message)
     {
-        translateColor(message);
+        setColor(translateColor(message));
         InfoMessage(message);
     }
-    timer()
+
+    changed(integer change)
     {
-        llSetTimerEvent(0);
-        if((llGetAgentInfo(llGetOwner())&AGENT_TYPING))
+        if (change & CHANGED_LINK)
         {
-            isTyping = 1;
-            state typing;
-        }
-        else
-        {
-        isTyping = 0;
-        DebugMessage((string)originalColor);
-        llSetTimerEvent(0.5);
+            primsToRecolor = [];
+            listPrims();
         }
     }
-}
-state typing
-{
-    state_entry()
-    {
-        originalColor = llList2Vector(llGetLinkPrimitiveParams(
-        llList2Integer(primsToRecolor,0),[PRIM_COLOR,2]),0);
-        llSetTimerEvent(0.2);
-    }
+
     timer()
     {
-        isTyping = 1;
-        while((llGetAgentInfo(llGetOwner())&AGENT_TYPING))
+        if (llGetAgentInfo(owner) & AGENT_TYPING)
         {
-            // we don't use the translateColor() function here because it's too expansive
-            vector newColor = <llFrand(1.0),llFrand(1.0),llFrand(1.0)>;
-            runColorLoop(newColor);
+            list originalColors;
+            integer i = 0;
+            for (; i < primListLen; ++i)
+            {
+                list mew = llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i), [PRIM_COLOR,ALL_SIDES]);
+                integer mewlen = llGetListLength(mew);
+                integer j = 0;
+                for (; j < mewlen; j+=2) // mew is strided by two
+                    originalColors += [PRIM_COLOR, j/2] + llList2List(mew, j, j+1);
+                originalColors += "RawR"; // Delimiter
+            }
+            do
+            {
+                setColor(random_color());
+                llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
+            } while(llGetAgentInfo(owner) & AGENT_TYPING);
+            DebugMessage(llDumpList2String(primsToRecolor, "RawR"));
+            DebugMessage(llDumpList2String(originalColors, "  |  "));
+            for (i = 0; i < primListLen; ++i)
+            {
+                integer j = llListFindList(originalColors, ["RawR"]);
+                llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i), llList2List(originalColors, 0, j - 1));
+                originalColors = llDeleteSubList(originalColors, 0, j);
+            }
         }
-        if(isTyping)
-        {
-            isTyping = 0;
-            llSleep(0.01);
-            runColorLoop(originalColor);
-            state default;
-        } // end
     }
 }
