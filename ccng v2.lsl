@@ -121,7 +121,7 @@ vector translateColor(string message)
 listPrims()
 {
     primListLen = 0;
-    list recolorNames = ["colorprim"];  // Name all recolorable prims here, case sensitive!
+    list recolorNames = ["ColorPrim"];  // Name all recolorable prims here, case sensitive!
     integer fp = 0;                     // counter
     for(; fp <= llGetNumberOfPrims(); ++fp)
     {
@@ -199,7 +199,7 @@ default
                 integer mewlen = llGetListLength(mew);
                 integer j = 0;
                 for (; j < mewlen; j+=2) // mew is strided by two
-                    originalColors += [PRIM_COLOR, j] + llList2List(mew, j, j+1);
+                    originalColors += [PRIM_COLOR, j/2] + llList2List(mew, j, j+1);
                 originalColors += "RawR"; // Delimiter
             }
             do
