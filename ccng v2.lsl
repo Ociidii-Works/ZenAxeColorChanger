@@ -227,7 +227,7 @@ default
         else // not typing
         {
             if (MessagesLevel >= 2)llSetText((string)llGetUsedMemory()+" bytes", <1,1,1>, 0.8);
-            else  llSetText( "", ZERO_VECTOR, 1.0 );
+            llSetText( "", ZERO_VECTOR, 1.0 );
         }
     }
 }
