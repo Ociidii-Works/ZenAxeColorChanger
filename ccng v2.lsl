@@ -131,8 +131,11 @@ listPrims()
             ++primListLen;
         }
     }
-    if (colorRoot && llListFindList(primsToRecolor, [LINK_ROOT]) == -1) // User wants root, but not in the list
+    if (colorRoot && ( primListLen == 0 || llListFindList(primsToRecolor, [LINK_ROOT]) == -1)) // User wants root, but not in the list
+    {
         primsToRecolor += LINK_ROOT;
+        ++primListLen;
+    }
     InfoMessage("List Length: " + (string)primListLen);
 }
 
@@ -203,13 +206,15 @@ default
                     originalColors += [PRIM_COLOR, j/2] + llList2List(mew, j, j+1);
                 originalColors += "RawR"; // Delimiter
             }
+            
             do
             {
                 setColor(random_color());
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
             }
             while(llGetAgentInfo(owner) & AGENT_TYPING);
-            {
+            // reverse loop, read again.
+
                 DebugMessage(llDumpList2String(primsToRecolor, "RawR"));
                 DebugMessage(llDumpList2String(originalColors, "  |  "));
                 for (i = 0; i < primListLen; ++i)
@@ -218,7 +223,6 @@ default
                     llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i),llList2List(originalColors, 0, j - 1));
                     originalColors = llDeleteSubList(originalColors, 0, j);
                 }
-            }
         }
         else // not typing
         {
