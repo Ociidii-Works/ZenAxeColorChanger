@@ -191,7 +191,14 @@ default
             list originalColors;
             integer i = 0;
             for (; i < primListLen; ++i)
-                originalColors += llDumpList2String(llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i),[PRIM_COLOR,ALL_SIDES]), ";");
+            {
+                list mew = llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i), [PRIM_COLOR,ALL_SIDES]);
+                integer mewlen = llGetListLength(mew);
+                integer j = 0;
+                for (; j < mewlen; j+=2) // mew is strided by two
+                    originalColors += [PRIM_COLOR, j, llList2List(mew, j, j+1)];
+                originalColors += "RawR"; // Delimiter
+            }
             do
             {
                 setColor(random_color());
@@ -199,12 +206,9 @@ default
             } while(llGetAgentInfo(owner) & AGENT_TYPING);
             for (i = 0; i < primListLen; ++i)
             {
-                integer link = llList2Integer(primsToRecolor, i);
-                list faces = llParseString2List(llList2String(originalColors, i), [";"], [""]);
-                integer face_count = llGetListLength(faces);
-                integer j = 0;
-                for (; j < face_count; ++j)
-                    llSetLinkColor(link, (vector)llList2String(faces, j), j); // Caveat: Must explicit cast to vector
+                integer j = llListFindList(originalColors, ["RawR"]);
+                llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i), llList2List(originalColors, 0, j - 1));
+                originalColors = llDeleteSubList(originalColors, 0, j);
             }
         }
     }
