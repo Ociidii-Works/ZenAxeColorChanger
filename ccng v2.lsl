@@ -199,7 +199,7 @@ default
                 integer mewlen = llGetListLength(mew);
                 integer j = 0;
                 for (; j < mewlen; j+=2) // mew is strided by two
-                    originalColors += [PRIM_COLOR, j, llList2List(mew, j, j+1)];
+                    originalColors += [PRIM_COLOR, j] + llList2List(mew, j, j+1);
                 originalColors += "RawR"; // Delimiter
             }
             do
@@ -207,6 +207,7 @@ default
                 setColor(random_color());
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
             } while(llGetAgentInfo(owner) & AGENT_TYPING);
+            DebugMessage(llDumpList2String(originalColors, "  |  "));
             for (i = 0; i < primListLen; ++i)
             {
                 integer j = llListFindList(originalColors, ["RawR"]);
