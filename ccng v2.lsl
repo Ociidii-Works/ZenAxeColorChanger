@@ -131,8 +131,11 @@ listPrims()
             ++primListLen;
         }
     }
-    if (colorRoot && llListFindList(primsToRecolor, [LINK_ROOT]) == -1) // User wants root, but not in the list
+    if (colorRoot && (primListLen == 0 || llListFindList(primsToRecolor, [LINK_ROOT]) == -1)) // User wants root, but not in the list
+    {
         primsToRecolor += LINK_ROOT;
+        ++primListLen;
+    }
     InfoMessage("List Length: " + (string)primListLen);
 }
 
@@ -195,26 +198,33 @@ default
             integer i = 0;
             for (; i < primListLen; ++i)
             {
-                list mew = llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i), [PRIM_COLOR,ALL_SIDES]);
-                integer mewlen = llGetListLength(mew);
-                integer j = 0;
-                for (; j < mewlen; j+=2) // mew is strided by two
-                    originalColors += [PRIM_COLOR, j/2] + llList2List(mew, j, j+1);
-                originalColors += "RawR"; // Delimiter
+	        integer link = llList2Integer(primsToRecolor, i);
+                originalColors += [PRIM_LINK_TARGET, link];
+                if (LINK_ROOT == link)
+                {
+                    integer faces = llGetNumberOfSides();
+                    while (faces > 0)
+                    {
+                        --faces;
+                        originalColors += [PRIM_COLOR, faces, llGetColor(faces), llGetAlpha(faces)];
+                    }
+                }
+                else
+                {
+                    list mew = llGetLinkPrimitiveParams(link, [PRIM_COLOR,ALL_SIDES]);
+                    integer mewlen = llGetListLength(mew);
+                    integer j = 0;
+                    for (; j < mewlen; j+=2) // mew is strided by two
+                        originalColors += [PRIM_COLOR, j/2] + llList2List(mew, j, j+1);
+                }
             }
             do
             {
                 setColor(random_color());
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
             } while(llGetAgentInfo(owner) & AGENT_TYPING);
-            DebugMessage(llDumpList2String(primsToRecolor, "RawR"));
             DebugMessage(llDumpList2String(originalColors, "  |  "));
-            for (i = 0; i < primListLen; ++i)
-            {
-                integer j = llListFindList(originalColors, ["RawR"]);
-                llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i), llList2List(originalColors, 0, j - 1));
-                originalColors = llDeleteSubList(originalColors, 0, j);
-            }
+            llSetLinkPrimitiveParamsFast(LINK_THIS, originalColors);
         }
     }
 }
