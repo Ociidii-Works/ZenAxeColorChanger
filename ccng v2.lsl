@@ -45,11 +45,8 @@ vector random_color() { return <llFrand(1.0), llFrand(1.0), llFrand(1.0)>; }
 vector translateColor(string message)
 {
     message = llToLower(message);
-    if (llGetSubString(message, 0, 4) != "glow ")
-    {
-        llResetScript(); // Invalid message, only way to abort is to reset.
-        return ZERO_VECTOR;
-    }
+    if (llGetSubString(message, 0, 4) != "glow ") // Invalid message, only way to abort is to give bad color vector.
+        return <9,9,9>;
     if (message == "glow red")
         return <1.00000, 0.00000, 0.00000>;
     if (message == "glow dkred")
@@ -140,6 +137,7 @@ listPrims()
 
 setColor(vector color)
 {
+    if (color >= <5,5,5>) return; // Minor hack
     integer i = 0;
     for(; i < primListLen; ++i)
     {
