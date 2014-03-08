@@ -191,6 +191,7 @@ default
     {
         if (llGetAgentInfo(owner) & AGENT_TYPING)
         {
+            if (MessagesLevel >= 1) llSetText( "Typing...", <1,1,1>, 1.0 );
             list originalColors;
             integer i = 0;
             for (; i < primListLen; ++i)
@@ -206,16 +207,23 @@ default
             {
                 setColor(random_color());
                 llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
-            } while(llGetAgentInfo(owner) & AGENT_TYPING);
-            DebugMessage(llDumpList2String(primsToRecolor, "RawR"));
-            DebugMessage(llDumpList2String(originalColors, "  |  "));
-            for (i = 0; i < primListLen; ++i)
+            }
+            while(llGetAgentInfo(owner) & AGENT_TYPING);
             {
-                integer j = llListFindList(originalColors, ["RawR"]);
-                llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i), llList2List(originalColors, 0, j - 1));
-                originalColors = llDeleteSubList(originalColors, 0, j);
+                DebugMessage(llDumpList2String(primsToRecolor, "RawR"));
+                DebugMessage(llDumpList2String(originalColors, "  |  "));
+                for (i = 0; i < primListLen; ++i)
+                {
+                    integer j = llListFindList(originalColors, ["RawR"]);
+                    llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i),llList2List(originalColors, 0, j - 1));
+                    originalColors = llDeleteSubList(originalColors, 0, j);
+                }
             }
         }
-        if (MessagesLevel >= 1)llSetText((string)llGetUsedMemory()+" bytes", <1,1,1>, 0.8);
+        else // not typing
+        {
+            if (MessagesLevel >= 2)llSetText((string)llGetUsedMemory()+" bytes", <1,1,1>, 0.8);
+            else  llSetText( "", ZERO_VECTOR, 1.0 );
+        }
     }
 }
