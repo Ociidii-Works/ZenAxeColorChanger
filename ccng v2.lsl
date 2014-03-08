@@ -216,5 +216,6 @@ default
                 originalColors = llDeleteSubList(originalColors, 0, j);
             }
         }
+        if (MessagesLevel >= 1)llSetText((string)llGetUsedMemory()+" bytes", <1,1,1>, 0.8);
     }
 }
