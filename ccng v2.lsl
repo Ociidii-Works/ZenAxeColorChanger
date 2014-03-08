@@ -138,7 +138,7 @@ listPrims()
 
 setColor(vector color)
 {
-    if (color >= <5,5,5>) return; // Minor hack
+    if (color == <9,9,9>) return; // Minor hack
     integer i = 0;
     for(; i < primListLen; ++i)
     {
