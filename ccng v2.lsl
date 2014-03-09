@@ -20,15 +20,18 @@ as the name is changed.
 // See https://github.com/Ociidii-Works/ZenAxeColorChanger/blob/master/README.md
 
 // user preferences //
-float glowAmount = 0.08;        // How much glow, negative for no change
-integer colorRoot = TRUE;       // Needed for checking if we want to recolor the root prim
-integer MessagesLevel = 0;      // Verbosity.
+float g_glowAmount = 0.08;        // How much glow, negative for no change
+integer g_colorRoot = TRUE;       // Needed for checking if we want to recolor the root prim
+integer g_MessagesLevel = 0;      // Verbosity.
+list g_recolorNames = ["ColorPrim"];  // Name all recolorable prims here, case sensitive!
 
 ///////////////////////////////////////////////////////////////////
-// internal variables, LEAVE THEM ALONE!! D:
-key owner;                      // Owner, set in state_entry
-list primsToRecolor = [];       // Internal use, don't touch.
-integer primListLen;            // Length of the prim list. used for checks
+// internal variables
+key g_owner;
+list g_primsToRecolor = [];
+list g_originalColors = [];
+// Length of the prim list.
+integer g_primListLen = 0;
 ///////////////////////////////////////////////////////////////////
 
 
@@ -36,9 +39,9 @@ integer primListLen;            // Length of the prim list. used for checks
 
 
 ////// Debug system /////////
-ErrorMessage(string message) { if (MessagesLevel >= 1) llOwnerSay("E: " + message); }
-InfoMessage(string message)  { if (MessagesLevel >= 2) llOwnerSay("I: " + message); }
-DebugMessage(string message) { if (MessagesLevel >= 3) llOwnerSay("D: " + message); }
+ErrorMessage(string message) { if (g_MessagesLevel >= 1) llOwnerSay("E: " + message); }
+InfoMessage(string message)  { if (g_MessagesLevel >= 2) llOwnerSay("I: " + message); }
+DebugMessage(string message) { if (g_MessagesLevel >= 3) llOwnerSay("D: " + message); }
 
 vector random_color() { return <llFrand(1.0), llFrand(1.0), llFrand(1.0)>; }
 
@@ -46,7 +49,7 @@ vector translateColor(string message)
 {
     message = llToLower(message);
     if (llGetSubString(message, 0, 4) != "glow ") // Invalid message, only way to abort is to give bad color vector.
-        return <9,9,9>;
+        jump end;
     if (message == "glow red")
         return <1.00000, 0.00000, 0.00000>;
     if (message == "glow dkred")
@@ -115,51 +118,82 @@ vector translateColor(string message)
         return <0.7725490196078431,0.3568627450980392,0.1725490196078431>;
     if (message == "glow random")
         return random_color();
-    return <9, 9, 9>;
+    @end;
+    return <9.0, 9.0, 9.0>;
 }
 
-listPrims()
+createPrimList()
 {
-    primListLen = 0;
-    list recolorNames = ["ColorPrim"];  // Name all recolorable prims here, case sensitive!
-    integer fp = 0;                     // counter
-    for(; fp <= llGetNumberOfPrims(); ++fp)
+    g_primsToRecolor = [];
+    g_primListLen = 0;
+    integer len = llGetNumberOfPrims();
+    if (len == 1)
     {
-        if (llListFindList(recolorNames, [llGetLinkName(fp)]) != -1)
+        // one prim linksets use link number 0 for root
+        if (g_colorRoot)
         {
-            primsToRecolor += fp;
-            ++primListLen;
+            g_primsToRecolor += 0;
+            g_primListLen = 1;
         }
     }
-    if (colorRoot && ( primListLen == 0 || llListFindList(primsToRecolor, [LINK_ROOT]) == -1)) // User wants root, but not in the list
+    else
     {
-        primsToRecolor += LINK_ROOT;
-        ++primListLen;
+        // multi prim linksets use link number 1 for root
+        integer fp = 1; // counter
+        for(; fp <= len; ++fp)
+        {
+            // if link has a name we want add to recolor
+            if (~llListFindList(g_recolorNames, [llGetLinkName(fp)]))
+            {
+                g_primsToRecolor += fp;
+                ++g_primListLen;
+            }
+        }
+        // fix this up when preprocessor is ready
+        // LINK_ROOT is defined as 1
+        if (g_colorRoot && !~llListFindList(g_primsToRecolor, [LINK_ROOT])) // User wants root
+        {
+            g_primsToRecolor += LINK_ROOT;
+            ++g_primListLen;
+        }
     }
-    InfoMessage("List Length: " + (string)primListLen);
+    InfoMessage("List Length: " + (string)g_primListLen);
+}
+
+createOriginalColorList()
+{
+    g_originalColors = [];
+    integer i = 0;
+    for(; i < g_primListLen; i++)
+    {
+        integer link = llList2Integer(g_primsToRecolor, i);
+        list originalData = llGetLinkPrimitiveParams(link, [PRIM_COLOR, ALL_SIDES, PRIM_GLOW, ALL_SIDES]);
+        integer sides = llGetLinkNumberOfSides(link);
+        integer j = 0;
+        integer len = llGetListLength(originalData)/2;
+        g_originalColors += [ PRIM_LINK_TARGET, link ];
+        for(; j < sides; j++)
+        {
+            g_originalColors += [ PRIM_COLOR, j ] + llList2List(originalData, j*2, j*2+1);
+            if (g_glowAmount >= 0.0)
+                g_originalColors += [ PRIM_GLOW, j ] + llList2List(originalData, sides*2 + j, sides*2 + j);
+        }
+    }
 }
 
 setColor(vector color)
 {
-    if (color == <9,9,9>) return; // Minor hack
+    if (color == <9.0,9.0,9.0>) return; // Minor hack
+    list params = [];
     integer i = 0;
-    for(; i < primListLen; ++i)
+    for(; i < g_primListLen; ++i)
     {
-        integer link = llList2Integer(primsToRecolor, i);
-        // Set color
-        if (link == LINK_ROOT || glowAmount < 0) // Don't glow root, negative glow is no change
-        {
-            if (link == LINK_ROOT) InfoMessage("Setting Root Color to: " + (string)color);
-            llSetLinkColor(link, color, ALL_SIDES);
-        }
-        else
-        {
-            llSetLinkPrimitiveParamsFast(link,
-                [PRIM_COLOR,ALL_SIDES,color,1.0,
-                PRIM_GLOW,ALL_SIDES,glowAmount
-                ]);
-        }
+        integer link = llList2Integer(g_primsToRecolor, i);
+        params += [ PRIM_LINK_TARGET, link, PRIM_COLOR, ALL_SIDES, color, 1.0 ];
+        if (g_glowAmount >= 0.0)
+            params += [ PRIM_GLOW, ALL_SIDES, g_glowAmount ];
     }
+    llSetLinkPrimitiveParamsFast(LINK_SET, params);
 }
 
 /////////////////////////// Script Starts Here ///////////////////////////
@@ -167,67 +201,61 @@ default
 {
     state_entry()
     {
-        owner = llGetOwner();
-        listPrims();
-        llListen(9, "", owner, "");
-//      llSetMemoryLimit(llGetUsedMemory() + 4096);
+        g_owner = llGetOwner();
+        createPrimList();
+        createOriginalColorList();
+        state idle;
+    }
+}
+
+state idle
+{
+    state_entry()
+    {
+        llListen(9, "", g_owner, "");
         llSetTimerEvent(0.5);
     }
-
+    
     // We re-use the listener system from what we are replacing,
     listen(integer channel, string name, key is, string message)
     {
         setColor(translateColor(message));
         InfoMessage(message);
     }
-
+    
     changed(integer change)
     {
         if (change & CHANGED_LINK)
-        {
-            primsToRecolor = [];
-            listPrims();
-        }
+            createPrimList();
+            
+        if (change & CHANGED_OWNER)
+            llResetScript();
     }
-
+    
     timer()
     {
-        if (llGetAgentInfo(owner) & AGENT_TYPING)
+        if (llGetAgentInfo(g_owner) & AGENT_TYPING)
         {
-            if (MessagesLevel >= 1) llSetText( "Typing...", <1,1,1>, 1.0 );
-            list originalColors;
-            integer i = 0;
-            for (; i < primListLen; ++i)
-            {
-                list mew = llGetLinkPrimitiveParams(llList2Integer(primsToRecolor, i), [PRIM_COLOR,ALL_SIDES]);
-                integer mewlen = llGetListLength(mew);
-                integer j = 0;
-                for (; j < mewlen; j+=2) // mew is strided by two
-                    originalColors += [PRIM_COLOR, j/2] + llList2List(mew, j, j+1);
-                originalColors += "RawR"; // Delimiter
-            }
-            
-            do
-            {
-                setColor(random_color());
-                llSleep(0.01); // Liru Note: Should we even bother, Forced Delay from above call could be enough
-            }
-            while(llGetAgentInfo(owner) & AGENT_TYPING);
-            // reverse loop, read again.
-
-                DebugMessage(llDumpList2String(primsToRecolor, "RawR"));
-                DebugMessage(llDumpList2String(originalColors, "  |  "));
-                for (i = 0; i < primListLen; ++i)
-                {
-                    integer j = llListFindList(originalColors, ["RawR"]);
-                    llSetLinkPrimitiveParamsFast(llList2Integer(primsToRecolor, i),llList2List(originalColors, 0, j - 1));
-                    originalColors = llDeleteSubList(originalColors, 0, j);
-                }
+            state typing;
         }
-        else // not typing
+    }
+}
+
+state typing
+{
+    state_entry()
+    {
+        createOriginalColorList();
+        llSetTimerEvent(0.05);
+    }
+    
+    timer()
+    {
+        setColor(random_color());
+        if(!(llGetAgentInfo(g_owner) & AGENT_TYPING))
         {
-            if (MessagesLevel >= 2)llSetText((string)llGetUsedMemory()+" bytes", <1,1,1>, 0.8);
-            llSetText( "", ZERO_VECTOR, 1.0 );
+            llSetLinkPrimitiveParamsFast(LINK_SET, g_originalColors);
+            state default;
         }
     }
 }
