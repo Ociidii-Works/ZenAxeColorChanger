@@ -1,47 +1,49 @@
-/*           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
-                   Version 2, December 2004
+//             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+//                     Version 2, December 2004
+//  
+//  Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+//  
+//  Everyone is permitted to copy and distribute verbatim or modified
+//  copies of this license document, and changing it is allowed as long
+//  as the name is changed.
+//  
+//             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+//    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+//  
+//   0. You just DO WHAT THE FUCK YOU WANT TO.
 
-Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
-
-Everyone is permitted to copy and distribute verbatim or modified
-copies of this license document, and changing it is allowed as long
-as the name is changed.
-
-           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
-  TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-
- 0. You just DO WHAT THE FUCK YOU WANT TO.
-
-*/
-//         For better readability, extend the size of the editor until this comment fits fully on one line.
-
-//////// How to use ///////////
+// How to use //
 
 // See https://github.com/Ociidii-Works/ZenAxeColorChanger/blob/master/README.md
 
 // user preferences //
-float g_glowAmount = 0.08;        // How much glow, negative for no change
-integer g_colorRoot = TRUE;       // Needed for checking if we want to recolor the root prim
-integer g_MessagesLevel = 0;      // Verbosity.
+float g_glowAmount = 0.08;          // How much glow, negative for no change
+integer g_colorRoot = TRUE;         // Needed for checking if we want to recolor the root prim
+integer g_idleRandom = FALSE;        // Color cycles randomly at idle
+integer g_idlePulse = FALSE;        // Pulse color at idle
+integer g_MessagesLevel = 0;        // Verbosity.
 list g_recolorNames = ["ColorPrim"];  // Name all recolorable prims here, case sensitive!
+float g_count = 0;
+float g_glow=0;
+float g_inc=0.01;
 
-///////////////////////////////////////////////////////////////////
-// internal variables
+// PREFERENCES ENDS HERE. DO NOT EDIT THE FOLLOWING SHIT UNLESS YOU KNOW WHAT THE FUCK YOU'RE DOING O.O //
+
+// Conditional variables //
+
+
+// internal variables //
+integer g_primListLen = 0; // Length of the prim list.
 key g_owner;
-list g_primsToRecolor = [];
 list g_originalColors = [];
-// Length of the prim list.
-integer g_primListLen = 0;
-///////////////////////////////////////////////////////////////////
+list g_primsToRecolor = [];
 
-
-////////////////////// Custom Functions /////////////////////////
-
-
-////// Debug system /////////
+// Debug system //
 ErrorMessage(string message) { if (g_MessagesLevel >= 1) llOwnerSay("E: " + message); }
 InfoMessage(string message)  { if (g_MessagesLevel >= 2) llOwnerSay("I: " + message); }
 DebugMessage(string message) { if (g_MessagesLevel >= 3) llOwnerSay("D: " + message); }
+
+// Custom Functions //
 
 vector random_color() { return <llFrand(1.0), llFrand(1.0), llFrand(1.0)>; }
 
@@ -201,6 +203,7 @@ default
 {
     state_entry()
     {
+        llSetText("", ZERO_VECTOR, 0.0);
         g_owner = llGetOwner();
         createPrimList();
         createOriginalColorList();
@@ -213,7 +216,7 @@ state idle
     state_entry()
     {
         llListen(9, "", g_owner, "");
-        llSetTimerEvent(0.5);
+        llSetTimerEvent(0.1);
     }
     
     // We re-use the listener system from what we are replacing,
@@ -238,6 +241,18 @@ state idle
         {
             state typing;
         }
+        if (g_idleRandom)
+            setColor(random_color());
+        if (g_idlePulse)
+        {
+            g_glow+=g_inc;
+                if ((g_glow>0.2)||(g_glow<0.01))
+                {
+                    g_inc=-g_inc;
+                }
+                llSetLinkPrimitiveParamsFast(LINK_SET,[PRIM_GLOW,ALL_SIDES,g_glow]);
+        }
+        if(g_MessagesLevel > 0)llSetText("Idle::"+(string)llGetUsedMemory()+" bytes used", <1,1,1>, 1.0);
     }
 }
 
@@ -251,11 +266,13 @@ state typing
     
     timer()
     {
+        if(g_MessagesLevel > 0)llSetText("Typing::"+(string)llGetUsedMemory()+" bytes used", <1,0.6,0.6>, 1.0);
         setColor(random_color());
         if(!(llGetAgentInfo(g_owner) & AGENT_TYPING))
         {
             llSetLinkPrimitiveParamsFast(LINK_SET, g_originalColors);
             state default;
         }
+        if(g_MessagesLevel > 0)llSetText("Typing::"+(string)llGetUsedMemory()+" bytes used", <1,0.6,0.6>, 1.0);
     }
 }
