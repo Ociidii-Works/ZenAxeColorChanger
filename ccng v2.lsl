@@ -1,15 +1,15 @@
 //             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
 //                     Version 2, December 2004
-//  
+//
 //  Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
-//  
+//
 //  Everyone is permitted to copy and distribute verbatim or modified
 //  copies of this license document, and changing it is allowed as long
 //  as the name is changed.
-//  
+//
 //             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
 //    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-//  
+//
 //   0. You just DO WHAT THE FUCK YOU WANT TO.
 
 // How to use //
@@ -218,23 +218,23 @@ state idle
         llListen(9, "", g_owner, "");
         llSetTimerEvent(0.1);
     }
-    
+
     // We re-use the listener system from what we are replacing,
     listen(integer channel, string name, key is, string message)
     {
         setColor(translateColor(message));
         InfoMessage(message);
     }
-    
+
     changed(integer change)
     {
         if (change & CHANGED_LINK)
             createPrimList();
-            
+
         if (change & CHANGED_OWNER)
             llResetScript();
     }
-    
+
     timer()
     {
         if (llGetAgentInfo(g_owner) & AGENT_TYPING)
@@ -263,7 +263,7 @@ state typing
         createOriginalColorList();
         llSetTimerEvent(0.05);
     }
-    
+
     timer()
     {
         if(g_MessagesLevel > 0)llSetText("Typing::"+(string)llGetUsedMemory()+" bytes used", <1,0.6,0.6>, 1.0);
