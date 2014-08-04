@@ -21,9 +21,7 @@ float g_glowAmount = 0.08;          // How much glow, negative for no change
 integer g_colorRoot = TRUE;         // Needed for checking if we want to recolor the root prim
 integer g_idleRandom = FALSE;        // Color cycles randomly at idle
 integer g_idlePulse = FALSE;        // Pulse color at idle
-integer g_MessagesLevel = 0;        // Verbosity.
 list g_recolorNames = ["ColorPrim"];  // Name all recolorable prims here, case sensitive!
-float g_count = 0;
 float g_glow=0;
 float g_inc=0.01;
 
@@ -39,6 +37,7 @@ list g_originalColors = [];
 list g_primsToRecolor = [];
 
 // Debug system //
+integer g_MessagesLevel = 0;        // Verbosity.
 ErrorMessage(string message) { if (g_MessagesLevel >= 1) llOwnerSay("E: " + message); }
 InfoMessage(string message)  { if (g_MessagesLevel >= 2) llOwnerSay("I: " + message); }
 DebugMessage(string message) { if (g_MessagesLevel >= 3) llOwnerSay("D: " + message); }
@@ -123,7 +122,7 @@ vector translateColor(string message)
     if (message == "glow random")
         return random_color();
     @end;
-    return <9.0, 9.0, 9.0>;
+        return <9.0, 9.0, 9.0>;
 }
 
 createPrimList()
@@ -162,11 +161,11 @@ createPrimList()
         }
     }
     InfoMessage("List Length: " + (string)g_primListLen);
-    llSetMemoryLimit(llGetUsedMemory()+4096);
 }
 
 createOriginalColorList()
 {
+    DebugMessage("Creating Original color list...");
     g_originalColors = [];
     integer i = 0;
     for(; i < g_primListLen; i++)
@@ -183,6 +182,7 @@ createOriginalColorList()
             if (g_glowAmount >= 0.0)
                 g_originalColors += [ PRIM_GLOW, j ] + llList2List(originalData, sides*2 + j, sides*2 + j);
         }
+        originalData = [];
     }
 }
 
@@ -199,83 +199,112 @@ setColor(vector color)
             params += [ PRIM_GLOW, ALL_SIDES, g_glowAmount ];
     }
     llSetLinkPrimitiveParamsFast(LINK_SET, params);
+    params = [];
 }
+
+// Self Upgrading Script by Cron Stardust based upon work by Markov Brodsky and Jippen Faddoul.  
+// If this code is used, these header lines MUST be kept.
+upgrade() {
+    //Get the name of the script
+    string self = llGetScriptName();
+    
+    string basename = self;
+    llOwnerSay("Index of space = "+(string)llSubStringIndex(self, " "));
+    // If there is a space in the name, find out if it's a copy number and correct the basename.
+    if (llSubStringIndex(self, " ") >= 0) {
+        InfoMessage("Attempting Upgrade...");
+        // Get the section of the string that would match this RegEx: /[ ][0-9]+$/
+        integer start = 2; // If there IS a version tail it will have a minimum of 2 characters.
+        string tail = llGetSubString(self, llStringLength(self) - start, -1);
+        while (llGetSubString(tail, 0, 0) != " ") {
+            start++;
+            tail = llGetSubString(self, llStringLength(self) - start, -1);
+        }
+        
+        // If the tail is a positive, non-zero number then it's a version code to be removed from the basename.
+        if ((integer)tail > 0) {
+            basename = llGetSubString(self, 0, -llStringLength(tail) - 1);
+        }
+    }
+    
+    // Remove all other like named scripts.
+    integer n = llGetInventoryNumber(INVENTORY_SCRIPT);
+    while (n-- > 0) {
+        string item = llGetInventoryName(INVENTORY_SCRIPT, n);
+        
+        // Remove scripts with same name (except myself, of course)
+        if (item != self && 0 == llSubStringIndex(item, basename)) {
+            llRemoveInventory(item);
+        }
+    }
+}
+
 
 /////////////////////////// Script Starts Here ///////////////////////////
 default
 {
     state_entry()
     {
+        DebugMessage("Entering state_entry");
         llSetText("", ZERO_VECTOR, 0.0);
         g_owner = llGetOwner();
         createPrimList();
         createOriginalColorList();
-        state idle;
-    }
-}
-
-state idle
-{
-    state_entry()
-    {
         llListen(9, "", g_owner, "");
-        llSetTimerEvent(1);
+        llSetTimerEvent(0.1);
+        // llSetMemoryLimit(19096);
     }
-
-    // We re-use the listener system from what we are replacing,
-    listen(integer channel, string name, key is, string message)
-    {
-        setColor(translateColor(message));
-        InfoMessage(message);
-    }
-
     changed(integer change)
     {
         if (change & CHANGED_LINK)
             createPrimList();
 
         if (change & CHANGED_OWNER)
+        {
+            llInstantMessage(llGetOwner(), "Owner changed! Restarting...");
             llResetScript();
+        }
     }
-
+    // We re-use the listener system from what we are replacing,
+    listen(integer channel, string name, key is, string message)
+    {
+        setColor(translateColor(message));
+        InfoMessage(message);
+    }
     timer()
     {
-        if (llGetAgentInfo(g_owner) & AGENT_TYPING)
+        DebugMessage("Entering timer event");
+        llSetTimerEvent(0.0);
+        if(llGetAgentInfo(g_owner) & AGENT_TYPING)
         {
-            state typing;
+            createOriginalColorList();
+            while(llGetAgentInfo(g_owner) & AGENT_TYPING)
+            {
+                // Typing
+
+                if(g_MessagesLevel > 0)llSetText("Typing::"+(string)llGetUsedMemory()+" bytes used", <1,0.6,0.6>, 1.0);
+                setColor(random_color());
+                if(g_MessagesLevel > 0)llSetText("Typing::"+(string)llGetUsedMemory()+" bytes used", <1,0.6,0.6>, 1.0);
+            }
+            if(!(llGetAgentInfo(g_owner) & AGENT_TYPING))
+            {
+                llSetLinkPrimitiveParamsFast(LINK_SET, g_originalColors);
+            }
         }
+
         if (g_idleRandom)
             setColor(random_color());
         if (g_idlePulse)
         {
             g_glow+=g_inc;
-                if ((g_glow>0.2)||(g_glow<0.01))
-                {
-                    g_inc=-g_inc;
-                }
-                llSetLinkPrimitiveParamsFast(LINK_SET,[PRIM_GLOW,ALL_SIDES,g_glow]);
+            if ((g_glow>0.2)||(g_glow<0.01))
+            {
+                g_inc=-g_inc;
+            }
+            llSetLinkPrimitiveParamsFast(LINK_SET,[PRIM_GLOW,ALL_SIDES,g_glow]);
         }
         if(g_MessagesLevel > 0)llSetText("Idle::"+(string)llGetUsedMemory()+" bytes used", <1,1,1>, 1.0);
-    }
-}
+        llSetTimerEvent(0.1);
 
-state typing
-{
-    state_entry()
-    {
-        createOriginalColorList();
-        llSetTimerEvent(0.05);
-    }
-
-    timer()
-    {
-        if(g_MessagesLevel > 0)llSetText("Typing::"+(string)llGetUsedMemory()+" bytes used", <1,0.6,0.6>, 1.0);
-        setColor(random_color());
-        if(!(llGetAgentInfo(g_owner) & AGENT_TYPING))
-        {
-            llSetLinkPrimitiveParamsFast(LINK_SET, g_originalColors);
-            state default;
-        }
-        if(g_MessagesLevel > 0)llSetText("Typing::"+(string)llGetUsedMemory()+" bytes used", <1,0.6,0.6>, 1.0);
     }
 }
