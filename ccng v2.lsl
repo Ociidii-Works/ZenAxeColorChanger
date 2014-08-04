@@ -118,6 +118,8 @@ vector translateColor(string message)
         return <0.9803921568627451,0.3019607843137255,0.6862745098039216>;
     if (message == "glow redhead")
         return <0.7725490196078431,0.3568627450980392,0.1725490196078431>;
+    if (message == "glow polarity")
+        return <0.318, 0.514, 0.110>;
     if (message == "glow random")
         return random_color();
     @end;
@@ -216,7 +218,8 @@ state idle
     state_entry()
     {
         llListen(9, "", g_owner, "");
-        llSetTimerEvent(0.2);
+        llSetTimerEvent(0.1);
+        llSetMemoryLimit(19096);
     }
 
     // We re-use the listener system from what we are replacing,
@@ -245,22 +248,12 @@ state idle
             setColor(random_color());
         if (g_idlePulse)
         {
-            // Most likely shit code, too tired to do better.
-            // Intent: only update color once per timer, for every child prim.
-            list params = [];
-            integer i = 0;
-            integer link = llList2Integer(g_primsToRecolor, i);
             g_glow+=g_inc;
-            if ((g_glow>0.2)||(g_glow<0.01))
-            {
-                g_inc=-g_inc;
-            }
-            for(; i < g_primListLen; ++i)
-            {
-
-                llSetLinkPrimitiveParamsFast(link,[PRIM_GLOW,ALL_SIDES,g_glow]);
-            }
-
+                if ((g_glow>0.2)||(g_glow<0.01))
+                {
+                    g_inc=-g_inc;
+                }
+                llSetLinkPrimitiveParamsFast(LINK_SET,[PRIM_GLOW,ALL_SIDES,g_glow]);
         }
         if(g_MessagesLevel > 0)llSetText("Idle::"+(string)llGetUsedMemory()+" bytes used", <1,1,1>, 1.0);
     }
@@ -272,6 +265,7 @@ state typing
     {
         createOriginalColorList();
         llSetTimerEvent(0.05);
+        llSetMemoryLimit(19096);
     }
 
     timer()
