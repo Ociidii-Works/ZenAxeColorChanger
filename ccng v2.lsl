@@ -162,6 +162,7 @@ createPrimList()
         }
     }
     InfoMessage("List Length: " + (string)g_primListLen);
+    llSetMemoryLimit(llGetUsedMemory()+4096);
 }
 
 createOriginalColorList()
@@ -218,8 +219,7 @@ state idle
     state_entry()
     {
         llListen(9, "", g_owner, "");
-        llSetTimerEvent(0.1);
-        llSetMemoryLimit(19096);
+        llSetTimerEvent(1);
     }
 
     // We re-use the listener system from what we are replacing,
@@ -265,7 +265,6 @@ state typing
     {
         createOriginalColorList();
         llSetTimerEvent(0.05);
-        llSetMemoryLimit(19096);
     }
 
     timer()
