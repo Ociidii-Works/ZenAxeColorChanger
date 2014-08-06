@@ -30,7 +30,7 @@ list g_originalColors = [];
 list g_primsToRecolor = [];
 integer has_controls = 0;
 // Debug system //
-integer g_MessagesLevel = 2;        // Verbosity.
+integer g_MessagesLevel = 0;        // Verbosity.
 ErrorMessage(string dm) { if (g_MessagesLevel >= 1) llOwnerSay("E: " + dm); }
 InfoMessage(string dm)  { if (g_MessagesLevel >= 2) llOwnerSay("I: " + dm); }
 DebugMessage(string dm) { if (g_MessagesLevel >= 3) llOwnerSay("D: " + dm); }
