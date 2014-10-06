@@ -19,6 +19,8 @@ integer g_idleRandom = FALSE;         // Color cycles randomly at idle
 integer g_idlePulse = TRUE;          // Pulse color at idle
 list g_recolorNames = ["ColorPrim"];  // Prims to recolor. Case matters
 float g_glow=0;
+float g_alpha = 1.0;
+integer g_fullbright = 1;
 float g_inc=0.01;
 // PREFERENCES END | DO NOT EDIT UNDER THIS UNLESS YOU KNOW WTF YOU'RE DOING
 // internal variables //
@@ -183,6 +185,16 @@ createOriginalColorList()
         originalData = [];
     }
 }
+setAlpha(integer alpha)
+{
+    integer i = 0;
+    integer link;
+    for(; i < g_primListLen; ++i)
+    {
+        link = llList2Integer(g_primsToRecolor, i);
+    }
+    llSetLinkAlpha(link,alpha,ALL_SIDES);
+}
 setGlow(float glow)
 {
     list params = [];
@@ -204,7 +216,7 @@ setColor(vector color)
     for(; i < g_primListLen; ++i)
     {
         integer link = llList2Integer(g_primsToRecolor, i);
-        params += [ PRIM_LINK_TARGET, link, PRIM_COLOR, ALL_SIDES, color, 1.0 ];
+        params += [ PRIM_LINK_TARGET, link, PRIM_COLOR, ALL_SIDES, color, g_alpha,PRIM_FULLBRIGHT, ALL_SIDES, g_fullbright ];
         if (g_glowAmount >= 0.0)
         params += [ PRIM_GLOW, ALL_SIDES, g_glowAmount ];
     }
@@ -254,6 +266,8 @@ default
         createPrimList();
         createOriginalColorList();
         llListen(9, "", g_owner, "");
+        integer u_chan = (integer)("0x"+llGetSubString((string)llGetOwner(),-8,-1));
+        llListen(u_chan+3,"","","");
         llSetTimerEvent(0.1);
         // llSetMemoryLimit(19096);
     }
@@ -310,6 +324,24 @@ default
         {
             m = llGetSubString(m, 5, -1);
             setColor(translateColor(m));
+        }
+        else if (m == "charging 1")
+        {
+            //llOwnerSay("HIDE");
+            llSetTimerEvent(0);
+            g_alpha = 0.65;
+            g_fullbright = 0;
+            setGlow(0);
+            setColor(<0.5,0.5,0.5>);
+        }
+        else if (m == "charging 0")
+        {
+            //llOwnerSay("SHOW");
+            g_alpha = 1.0;
+            g_fullbright = 1;
+            setGlow(g_glow);
+            setColor(<0.318, 0.514, 0.110>);
+            llSetTimerEvent(0.1);
         }
         else
         {
