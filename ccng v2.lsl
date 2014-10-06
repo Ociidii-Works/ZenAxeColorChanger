@@ -11,18 +11,16 @@
 //    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 //
 //   0. You just DO WHAT THE FUCK YOU WANT TO.
-// How to use //
-// See https://github.com/Ociidii-Works/ZenAxeColorChanger/blob/master/README.md
+// https://github.com/Ociidii-Works/ZenAxeColorChanger/blob/master/README.md
 // user preferences //
-float g_glowAmount = 0.08;          // How much glow, negative for no change
-integer g_colorRoot = TRUE;         // Needed for checking if we want to recolor the root prim
-integer g_idleRandom = FALSE;        // Color cycles randomly at idle
-integer g_idlePulse = FALSE;        // Pulse color at idle
-list g_recolorNames = ["ColorPrim"];  // Name all recolorable prims here, case sensitive!
+float g_glowAmount = 0.08;            // How much glow?
+integer g_colorRoot = TRUE;           // Recolor root prim?
+integer g_idleRandom = FALSE;         // Color cycles randomly at idle
+integer g_idlePulse = TRUE;          // Pulse color at idle
+list g_recolorNames = ["ColorPrim"];  // Prims to recolor. Case matters
 float g_glow=0;
 float g_inc=0.01;
-// PREFERENCES ENDS HERE. DO NOT EDIT THE FOLLOWING SHIT UNLESS YOU KNOW WHAT THE FUCK YOU'RE DOING O.O //
-// Conditional variables //
+// PREFERENCES END | DO NOT EDIT UNDER THIS UNLESS YOU KNOW WTF YOU'RE DOING
 // internal variables //
 integer g_primListLen = 0; // Length of the prim list.
 key g_owner;
@@ -185,6 +183,19 @@ createOriginalColorList()
         originalData = [];
     }
 }
+setGlow(float glow)
+{
+    list params = [];
+    integer i = 0;
+    for(; i < g_primListLen; ++i)
+    {
+        integer link = llList2Integer(g_primsToRecolor, i);
+        params += [ PRIM_LINK_TARGET, link, PRIM_GLOW, ALL_SIDES, glow];
+    }
+    llSetLinkPrimitiveParamsFast(LINK_SET, params);
+    params = [];
+}
+
 setColor(vector color)
 {
     if (color == <9.0,9.0,9.0>) return; // Minor hack
@@ -336,7 +347,7 @@ default
             {
                 g_inc=-g_inc;
             }
-            llSetLinkPrimitiveParamsFast(LINK_SET,[PRIM_GLOW,ALL_SIDES,g_glow]);
+            setGlow(g_glow);
         }
         if(g_MessagesLevel > 0)
         {
